@@ -120,20 +120,22 @@ export default function PaymentTransactions() {
         <div className="flex flex-wrap gap-3 items-center p-5 border-b border-gray-100">
           <div className="relative flex-1 min-w-[180px]">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Shakisha inzira, umushoferi…"
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Shakisha inzira cyangwa umushoferi…"
               className="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]/30"/>
           </div>
           <div className="flex items-center gap-2">
             <Filter size={15} className="text-gray-400"/>
             <select value={filterMethod} onChange={e => setFilterMethod(e.target.value as PaymentMethod|'All')}
               className="text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]/30">
-              <option value="All">Uburyo Bwose</option>
+              <option value="All">Uburyo bwose</option>
               <option>MoMo</option><option>Airtel</option><option>Cash</option><option>Card</option>
             </select>
             <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as TxStatus|'All')}
               className="text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]/30">
-              <option value="All">Imiterere Yose</option>
-              <option>Success</option><option>Pending</option><option>Failed</option>
+              <option value="All">Imiterere yose</option>
+              <option value="Success">Byakunze</option>
+              <option value="Pending">Biracyategereje</option>
+              <option value="Failed">Byanze</option>
             </select>
           </div>
           <div className="flex gap-2 ml-auto">
@@ -141,7 +143,7 @@ export default function PaymentTransactions() {
               <Plus size={15}/> Andika Urugendo
             </button>
             <button className="flex items-center gap-2 border border-gray-200 text-gray-600 text-sm font-semibold px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors">
-              <Download size={15}/> Ontsora
+              <Download size={15}/> Kuramo raporo
             </button>
           </div>
         </div>
@@ -150,7 +152,7 @@ export default function PaymentTransactions() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50">
-                {['Nomero','Inzira','Umushoferi','Igihe','Abagenzi','Amafaranga (RWF)','Uburyo','Imiterere'].map(h => (
+                {['ID','Inzira n’Icyerekezo','Umushoferi','Isaha','Abagenzi','Amafaranga (RWF)','Uburyo','Imiterere'].map(h => (
                   <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -170,7 +172,7 @@ export default function PaymentTransactions() {
                   <td className="px-5 py-3.5 text-center text-gray-700">{tx.passengers}</td>
                   <td className="px-5 py-3.5 font-semibold text-gray-800">{tx.amount.toLocaleString()}</td>
                   <td className="px-5 py-3.5"><Badge label={tx.method} variant={methodVariant[tx.method]}/></td>
-                  <td className="px-5 py-3.5"><Badge label={tx.status} variant={statusVariant[tx.status]}/></td>
+                  <td className="px-5 py-3.5"><Badge label={tx.status === 'Success' ? 'Byakunze' : tx.status === 'Pending' ? 'Biracyategereje' : 'Byanze'} variant={statusVariant[tx.status]}/></td>
                 </tr>
               ))}
               {filtered.length===0 && (
@@ -230,11 +232,11 @@ export default function PaymentTransactions() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Umubare w'Abagenzi *</label>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Umubare w’Abagenzi *</label>
               <input type="number" min="1" value={form.passengers||''}
                 onChange={e => handlePassengersChange(Number(e.target.value))}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]/30"
-                placeholder="e.g. 42"/>
+                placeholder="urugero: 42"/>
             </div>
 
             <div>
@@ -243,7 +245,7 @@ export default function PaymentTransactions() {
                 onChange={e => setForm(f => ({...f,amount:Number(e.target.value)}))}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]/30"/>
               {form.route && routes.find(r=>r.number===form.route) && (
-                <p className="text-[11px] text-gray-400 mt-1">Igiciro cy'inzira: RWF {routes.find(r=>r.number===form.route)!.fare.toLocaleString()} / umuntu</p>
+                <p className="text-[11px] text-gray-400 mt-1">Igiciro cy’inzira: RWF {routes.find(r=>r.number===form.route)!.fare.toLocaleString()} / umuntu</p>
               )}
             </div>
 
@@ -259,12 +261,14 @@ export default function PaymentTransactions() {
               <label className="block text-xs font-semibold text-gray-600 mb-1">Imiterere</label>
               <select value={form.status} onChange={e => setForm(f => ({...f,status:e.target.value as TxStatus}))}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]/30">
-                <option>Success</option><option>Pending</option><option>Failed</option>
+                <option value="Success">Byakunze</option>
+                <option value="Pending">Biracyategereje</option>
+                <option value="Failed">Byanze</option>
               </select>
             </div>
 
             <div className="col-span-2">
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Igihe</label>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Italiki n’Isaha</label>
               <input type="datetime-local" value={form.date.replace(' ','T')}
                 onChange={e => setForm(f => ({...f,date:e.target.value.replace('T',' ')}))}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]/30"/>

@@ -43,9 +43,9 @@ export default function PaymentTerminal() {
     <div className="space-y-5">
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: 'Total Terminals',  value: terminals.length },
-          { label: 'Online Now',       value: terminals.filter(t => t.status === 'Online').length },
-          { label: "Today's Volume",   value: `RWF ${terminals.reduce((s,t) => s + t.totalToday, 0).toLocaleString()}` },
+          { label: 'Ibikoresho byose',  value: terminals.length },
+          { label: 'Biri gukora ubu',   value: terminals.filter(t => t.status === 'Online').length },
+          { label: 'Ayishyuwe uyu munsi', value: `RWF ${terminals.reduce((s,t) => s + t.totalToday, 0).toLocaleString()}` },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-2xl p-4 shadow-sm">
             <p className="text-xs text-gray-500 font-medium">{s.label}</p>
@@ -56,7 +56,7 @@ export default function PaymentTerminal() {
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h3 className="text-sm font-bold text-gray-700">Terminals zo Kwishyura</h3>
+          <h3 className="text-sm font-bold text-gray-700">Imashini z’Imiripo (Terminals)</h3>
           <button onClick={openAdd} className="flex items-center gap-2 bg-[#0A2558] text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-[#0d2d6b] transition-colors">
             <Plus size={15}/> Ongeraho Terminal
           </button>
@@ -78,7 +78,10 @@ export default function PaymentTerminal() {
                   <td className="px-5 py-3.5 text-gray-600">{t.location}</td>
                   <td className="px-5 py-3.5 text-gray-600">{t.type}</td>
                   <td className="px-5 py-3.5">
-                    <div className="flex items-center gap-1.5">{statusIcon[t.status]}<Badge label={t.status} variant={statusVariant[t.status]}/></div>
+                    <div className="flex items-center gap-1.5">
+                      {statusIcon[t.status]}
+                      <Badge label={t.status === 'Online' ? 'Irakora' : t.status === 'Offline' ? 'Ntabwo ikora' : 'Iri gusanwa'} variant={statusVariant[t.status]}/>
+                    </div>
                   </td>
                   <td className="px-5 py-3.5">
                     <div className="flex gap-1">{t.accepts.map(m => <span key={m} className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">{m}</span>)}</div>
@@ -94,7 +97,7 @@ export default function PaymentTerminal() {
                 </tr>
               ))}
               {terminals.length === 0 && (
-                <tr><td colSpan={9} className="px-5 py-12 text-center text-gray-400">Nta terminal. Ongeraho imwe.</td></tr>
+                <tr><td colSpan={9} className="px-5 py-12 text-center text-gray-400">Nta mashini yanditse. Ongeraho imwe.</td></tr>
               )}
             </tbody>
           </table>
@@ -102,15 +105,15 @@ export default function PaymentTerminal() {
       </div>
 
       {(modal === 'add' || modal === 'edit') && (
-        <Modal title={modal === 'add' ? 'Ongeraho Terminal Nshya' : `Hindura — ${selected?.name}`}
+        <Modal title={modal === 'add' ? 'Ongeraho Terminal nshya' : `Hindura amakuru ya — ${selected?.name}`}
           onClose={() => setModal(null)}
           footer={<>
             <button onClick={() => setModal(null)} className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Reka</button>
-            <button onClick={save} className="px-4 py-2 rounded-xl bg-[#0A2558] text-white text-sm font-semibold hover:bg-[#0d2d6b]">Bika</button>
+            <button onClick={save} className="px-4 py-2 rounded-xl bg-[#0A2558] text-white text-sm font-semibold hover:bg-[#0d2d6b]">Bika amakuru</button>
           </>}>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              {[{label:'Izina ry\'Terminal', key:'name'},{label:'Aho Iri (Ahantu)', key:'location'}].map(({label,key}) => (
+              {[{label:'Izina ry’Imashini', key:'name'},{label:'Aho Iri (Ahantu)', key:'location'}].map(({label,key}) => (
                 <div key={key}>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">{label}</label>
                   <input value={String(form[key as keyof typeof form])} onChange={e => setForm(f => ({...f,[key]:e.target.value}))}
@@ -128,7 +131,9 @@ export default function PaymentTerminal() {
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Imiterere</label>
                 <select value={form.status} onChange={e => setForm(f => ({...f,status:e.target.value as TerminalStatus}))}
                   className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]/30">
-                  <option>Online</option><option>Offline</option><option>Maintenance</option>
+                  <option value="Online">Irakora</option>
+                  <option value="Offline">Ntabwo ikora</option>
+                  <option value="Maintenance">Iri gusanwa</option>
                 </select>
               </div>
             </div>
@@ -151,9 +156,9 @@ export default function PaymentTerminal() {
         <Modal title="Siba Terminal" onClose={() => setModal(null)}
           footer={<>
             <button onClick={() => setModal(null)} className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Reka</button>
-            <button onClick={() => { deleteTerminal(selected.id); setModal(null) }} className="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700">Siba</button>
+            <button onClick={() => { deleteTerminal(selected.id); setModal(null) }} className="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700">Emeza isiba</button>
           </>}>
-          <p className="text-sm text-gray-600">Urashaka gusiba terminal <strong>{selected.name}</strong> i <strong>{selected.location}</strong>?</p>
+          <p className="text-sm text-gray-600">Urashaka gusiba imashini <strong>{selected.name}</strong> i <strong>{selected.location}</strong> mu buryo budasubirwaho?</p>
         </Modal>
       )}
     </div>

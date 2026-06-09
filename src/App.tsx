@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth, can } from './store/AuthContext'
+import { useLanguage } from './store/LanguageContext'
 import LoginPage from './pages/LoginPage'
 import Sidebar from './components/Sidebar'
 import Dashboard from './components/Dashboard'
@@ -13,24 +14,6 @@ import BusCaptain from './pages/BusCaptain'
 import Modal from './components/shared/Modal'
 import Avatar from './components/shared/Avatar'
 import { Menu, ShieldAlert } from 'lucide-react'
-
-const PAGE_TITLE: Record<string, string> = {
-  dashboard:          'Dashboard',
-  payments:           'Payment Transactions',
-  reports:            'Reports',
-  audit:              'Audit Log',
-  'route-map':        'Route Map',
-  'payment-terminal': 'Payment Terminal',
-  'bus-profile':      'Bus Profile',
-  'bus-captain':      'Bus Captain',
-}
-
-const ROLE_BADGE: Record<string, string> = {
-  admin:   'bg-[#0A2558] text-white',
-  agent:   'bg-emerald-700 text-white',
-  captain: 'bg-amber-600 text-white',
-}
-const ROLE_LABEL: Record<string, string> = { admin: 'Admin', agent: 'Agent', captain: 'Captain' }
 
 function KigaliClock() {
   const [now, setNow] = useState(new Date())
@@ -75,19 +58,38 @@ function PageContent({ active }: { active: string }) {
 
 export default function App() {
   const { user, logout } = useAuth()
+  const { t } = useLanguage()
   const [active, setActive]           = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [logoutModal, setLogoutModal] = useState(false)
 
   if (!user) return <LoginPage />
 
+  const PAGE_TITLE: Record<string, string> = {
+    dashboard:          t('nav.dashboard'),
+    payments:           t('nav.payments'),
+    reports:            t('nav.reports'),
+    audit:              t('nav.audit'),
+    'route-map':        t('nav.routeMap'),
+    'payment-terminal': t('nav.paymentTerminal'),
+    'bus-profile':      t('nav.busProfile'),
+    'bus-captain':      t('nav.busCaptain'),
+  }
+
+  const ROLE_BADGE: Record<string, string> = {
+    admin:   'bg-[#0A2558] text-white',
+    agent:   'bg-emerald-700 text-white',
+    captain: 'bg-amber-600 text-white',
+  }
+  const ROLE_LABEL: Record<string, string> = { admin: 'Admin', agent: 'Agent', captain: 'Captain' }
+
   return (
-    <div className="min-h-screen bg-[#f0f2f7] flex">
+    <div className="min-h-screen bg-[#f0f2f7] flex relative">
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/40 z-30 lg:hidden" onClick={() => setSidebarOpen(false)}/>
       )}
 
-      <div className={`fixed lg:static inset-y-0 left-0 z-40 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <div className={`fixed lg:sticky top-0 h-screen z-40 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <Sidebar
           active={active}
           onNavigate={id => { setActive(id); setSidebarOpen(false) }}
@@ -95,16 +97,16 @@ export default function App() {
         />
       </div>
 
-      <div className="flex-1 lg:ml-[280px] flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col min-h-screen min-w-0">
         {/* Topbar */}
-        <header className="bg-white border-b border-gray-200 px-5 lg:px-7 py-3.5 flex items-center justify-between sticky top-0 z-20 shadow-sm">
-          <div className="flex items-center gap-3">
+        <header className="bg-white border-b border-gray-200 px-4 lg:px-7 py-3 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+          <div className="flex items-center gap-2 lg:gap-3">
             <button className="lg:hidden p-1.5 rounded-lg hover:bg-gray-100" onClick={() => setSidebarOpen(true)}>
               <Menu size={20} className="text-gray-600"/>
             </button>
-            <h1 className="text-xl font-bold text-gray-800">{PAGE_TITLE[active] ?? 'Dashboard'}</h1>
+            <h1 className="text-lg lg:text-xl font-bold text-gray-800 truncate max-w-[150px] sm:max-w-none">{PAGE_TITLE[active] ?? 'Dashboard'}</h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 lg:gap-3">
             <KigaliClock />
             <div className="h-8 w-px bg-gray-200 hidden md:block"/>
             <div className="flex items-center gap-2.5">
@@ -122,26 +124,25 @@ export default function App() {
           </div>
         </header>
 
-        <main className="flex-1 p-5 lg:p-7 overflow-y-auto">
+        <main className="flex-1 p-4 lg:p-7 overflow-x-hidden">
           <PageContent active={active}/>
         </main>
 
-        <footer className="text-center text-xs text-gray-400 py-3 border-t border-gray-200 bg-white">
-          HORIZON Express Ltd · TIN: 102 456 789 · Nyabugogo, Kigali, Rwanda · v1.0.0
+        <footer className="text-center text-[10px] sm:text-xs text-gray-400 py-3 px-4 border-t border-gray-200 bg-white">
+          HORIZON Express Ltd · Nyabugogo, Kigali, Rwanda · v1.0.0
         </footer>
       </div>
 
       {logoutModal && (
-        <Modal title="Confirm Logout" onClose={() => setLogoutModal(false)}
+        <Modal title={t('nav.logout')} onClose={() => setLogoutModal(false)}
           footer={<>
-            <button onClick={() => setLogoutModal(false)} className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Cancel</button>
+            <button onClick={() => setLogoutModal(false)} className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">{t('common.cancel')}</button>
             <button onClick={() => { logout(); setLogoutModal(false) }} className="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700">
-              Logout
+              {t('nav.logout')}
             </button>
           </>}>
           <p className="text-sm text-gray-600">
-            Are you sure you want to log out, <strong>{user.name}</strong>?
-            <br/><span className="text-gray-400 text-xs">This action will be recorded in the audit log.</span>
+            {t('nav.logoutConfirm')} <strong>{user.name}</strong>?
           </p>
         </Modal>
       )}

@@ -21,9 +21,9 @@ export default function MostEngagingRoutes() {
   if (top4.length === 0) {
     return (
       <div className="bg-white rounded-2xl p-5 shadow-sm h-full flex flex-col">
-        <h3 className="text-sm font-bold text-gray-700 mb-4">Most Engaging Routes</h3>
+        <h3 className="text-sm font-bold text-gray-700 mb-4">Inzira zikoreshwa cyane</h3>
         <div className="flex-1 flex items-center justify-center text-sm text-gray-400">
-          No trip data yet
+          Nta makuru y’ingendo arahari kuri ubu
         </div>
       </div>
     )
@@ -31,7 +31,7 @@ export default function MostEngagingRoutes() {
 
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm h-full">
-      <h3 className="text-sm font-bold text-gray-700 mb-4">Most Engaging Routes</h3>
+      <h3 className="text-sm font-bold text-gray-700 mb-4">Inzira zikoreshwa cyane</h3>
       <div className="space-y-3">
         {top4.map((route, i) => (
           <div key={route.id} className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0">

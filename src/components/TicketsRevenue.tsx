@@ -1,5 +1,6 @@
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 import { useApp } from '../store/AppContext'
+import { useLanguage } from '../store/LanguageContext'
 
 const METHOD_COLORS: Record<string, string> = {
   MoMo: '#F59E0B', Cash: '#10B981', Airtel: '#EF4444', Card: '#3B82F6',
@@ -27,13 +28,12 @@ function ChildIcon() {
 
 export default function TicketsRevenue() {
   const { transactions } = useApp()
+  const { t } = useLanguage()
   const today = todayKey()
   const todayTx = transactions.filter(tx => tx.date.startsWith(today))
 
   const totalRevenue    = todayTx.reduce((s, tx) => s + tx.amount, 0)
   const totalPassengers = todayTx.reduce((s, tx) => s + tx.passengers, 0)
-  const adults  = Math.round(totalPassengers * 0.856)
-  const children = totalPassengers - adults
 
   const revenueData = ['MoMo', 'Airtel', 'Cash', 'Card']
     .map(m => ({
@@ -44,47 +44,29 @@ export default function TicketsRevenue() {
     }))
     .filter(d => d.value > 0)
 
-  const displayData  = revenueData.length ? revenueData : [{ name: 'Nta makuru', key: 'none', value: 1, color: '#e2e8f0' }]
+  const displayData  = revenueData.length ? revenueData : [{ name: 'No data', key: 'none', value: 1, color: '#e2e8f0' }]
   const showTotal    = totalRevenue > 0
 
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm">
-      <div className="flex gap-6">
-        <div className="flex-1">
-          <div className="mb-5">
-            <div className="text-4xl font-bold text-[#0A2558]">
+      <div className="flex flex-col sm:flex-row gap-6">
+        <div className="flex-1 flex flex-col justify-center">
+          <div className="mb-2">
+            <div className="text-4xl lg:text-5xl font-extrabold text-[#0A2558]">
               {totalPassengers > 0 ? totalPassengers.toLocaleString() : '—'}
             </div>
-            <div className="text-[11px] text-gray-400 font-bold mt-1 uppercase tracking-wider">Abagenzi b'uyu munsi</div>
-            <div className="text-sm text-gray-500 mt-0.5">Passengers Today</div>
+            <div className="text-[11px] lg:text-xs text-gray-400 font-bold mt-1 uppercase tracking-wider">{t('db.passengersToday')}</div>
           </div>
-          <div className="flex gap-4">
-            <div className="flex items-center gap-3 bg-slate-50 rounded-xl px-4 py-3">
-              <div className="w-10 h-10 rounded-full bg-[#0A2558]/10 flex items-center justify-center flex-shrink-0">
-                <AdultIcon />
-              </div>
-              <div>
-                <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Abakuru</div>
-                <div className="text-2xl font-bold text-gray-800">{adults || '—'}</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 bg-indigo-50 rounded-xl px-4 py-3">
-              <div className="w-10 h-10 rounded-full bg-[#4a6cf7]/10 flex items-center justify-center flex-shrink-0">
-                <ChildIcon />
-              </div>
-              <div>
-                <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Abana</div>
-                <div className="text-2xl font-bold text-gray-800">{children || '—'}</div>
-              </div>
-            </div>
-          </div>
+          <p className="text-sm text-gray-500 max-w-[200px]">
+            {language === 'rw' ? 'Umubare w’abagenzi bose bishyuwe uyu munsi mu nzira zose.' : 'Total number of paid passengers recorded today across all routes.'}
+          </p>
         </div>
 
-        <div className="w-px bg-gray-100" />
+        <div className="hidden sm:block w-px bg-gray-100" />
+        <div className="block sm:hidden h-px bg-gray-100 w-full" />
 
         <div className="flex-1 flex flex-col items-center">
-          <div className="text-sm font-bold text-gray-700 self-start">Amafaranga y'uyu munsi</div>
-          <div className="text-xs text-gray-400 self-start mb-2">Today's Revenue</div>
+          <div className="text-sm font-bold text-gray-700 self-start">{t('db.revenueToday')}</div>
           <div className="relative w-44 h-44">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>

@@ -82,15 +82,15 @@ export default function Reports() {
         <div className="bg-white rounded-2xl p-5 shadow-sm">
           <div className="flex items-center gap-2 mb-1">
             <DollarSign size={15} className="text-[#4a6cf7]"/>
-            <p className="text-xs text-gray-500 font-medium">Amafaranga y'Umwaka</p>
+            <p className="text-xs text-gray-500 font-medium">Amafaranga y’Umwaka</p>
           </div>
           <p className="text-2xl font-bold text-[#4a6cf7]">RWF {(totalRevenue/1000000).toFixed(1)}M</p>
-          <p className="text-xs text-gray-400 mt-0.5">FY {selectedYear}</p>
+          <p className="text-xs text-gray-400 mt-0.5">Umwaka wa {selectedYear}</p>
         </div>
         <div className="bg-white rounded-2xl p-5 shadow-sm">
           <div className="flex items-center gap-2 mb-1">
             <TrendingUp size={15} className="text-emerald-500"/>
-            <p className="text-xs text-gray-500 font-medium">Amezi Ari Hagati</p>
+            <p className="text-xs text-gray-500 font-medium">Impuzandengo ku Kwezi</p>
           </div>
           <p className="text-2xl font-bold text-emerald-600">RWF {(avgMonthly/1000000).toFixed(1)}M</p>
           <p className="text-xs text-gray-400 mt-0.5">Amezi 12</p>
@@ -98,7 +98,7 @@ export default function Reports() {
         <div className="bg-white rounded-2xl p-5 shadow-sm">
           <div className="flex items-center gap-2 mb-1">
             <TrendingUp size={15} className="text-amber-500"/>
-            <p className="text-xs text-gray-500 font-medium">Ukwezi Gukomeye</p>
+            <p className="text-xs text-gray-500 font-medium">Ukwezi Kwungutse cyane</p>
           </div>
           <p className="text-2xl font-bold text-amber-600">{peakMonth.month}</p>
           <p className="text-xs text-gray-400 mt-0.5">RWF {(peakMonth.revenue/1000000).toFixed(1)}M</p>
@@ -106,18 +106,18 @@ export default function Reports() {
       </div>
 
       {/* Charts row */}
-      <div className="grid grid-cols-[1fr_260px] gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <div className="bg-white rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-gray-700">Amafaranga buri kwezi — {selectedYear}</h3>
+            <h3 className="text-sm font-bold text-gray-700">Imiterere y’Amafaranga buri kwezi — {selectedYear}</h3>
             <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)}
               className="text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]/30">
               {(years.length ? years : ['2024']).map(y => <option key={y}>{y}</option>)}
             </select>
           </div>
-          <div className="h-52">
+          <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyData} barSize={24} margin={{top:10,right:0,left:10,bottom:0}}>
+              <BarChart data={monthlyData} barSize={32} margin={{top:10,right:0,left:10,bottom:0}}>
                 <CartesianGrid vertical={false} stroke="#f1f5f9"/>
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill:'#94a3b8',fontSize:12}}/>
                 <YAxis axisLine={false} tickLine={false} tick={{fill:'#94a3b8',fontSize:11}} tickFormatter={v=>`${(v/1000000).toFixed(0)}M`}/>
@@ -129,37 +129,18 @@ export default function Reports() {
             </ResponsiveContainer>
           </div>
         </div>
-
-        <div className="bg-white rounded-2xl p-5 shadow-sm flex flex-col">
-          <h3 className="text-sm font-bold text-gray-700 mb-2">Uburyo bwo Kwishyura</h3>
-          {paymentData.length > 0 ? (
-            <div className="flex-1">
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie data={paymentData} cx="50%" cy="50%" outerRadius={70} innerRadius={40} dataKey="value" startAngle={90} endAngle={-270} strokeWidth={0}>
-                    {paymentData.map(e => <Cell key={e.key} fill={e.color}/>)}
-                  </Pie>
-                  <Legend iconType="circle" iconSize={8} formatter={v => <span className="text-xs text-gray-600">{v}</span>}/>
-                  <Tooltip formatter={(v:number) => `RWF ${v.toLocaleString()}`}/>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className="flex-1 flex items-center justify-center text-sm text-gray-400">Nta makuru</div>
-          )}
-        </div>
       </div>
 
       {/* Daily reports */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
           <Users size={16} className="text-[#4a6cf7]"/>
-          <h3 className="text-sm font-bold text-gray-700">Raporo z'Iminsi — Daily Reports</h3>
-          <span className="ml-auto text-xs text-gray-400">{dailyData.length} iminsi ifite makuru</span>
+          <h3 className="text-sm font-bold text-gray-700">Raporo y’Iminsi n’Ingendo</h3>
+          <span className="ml-auto text-xs text-gray-400">{dailyData.length} iminsi yabonetse</span>
         </div>
 
         {dailyData.length === 0 ? (
-          <div className="px-5 py-12 text-center text-gray-400 text-sm">Nta makuru y'ingendo. Tangira kwandika ingendo.</div>
+          <div className="px-5 py-12 text-center text-gray-400 text-sm">Nta makuru y’ingendo arahari kuri ubu.</div>
         ) : (
           <div className="divide-y divide-gray-50">
             {dailyData.map(day => {
@@ -175,10 +156,10 @@ export default function Reports() {
                     <span className="flex-shrink-0 mr-3 text-gray-400">
                       {isOpen ? <ChevronDown size={16}/> : <ChevronRight size={16}/>}
                     </span>
-                    <span className="font-semibold text-gray-700 w-28 flex-shrink-0">{day.date}</span>
-                    <div className="flex-1 grid grid-cols-4 gap-4">
+                    <span className="font-semibold text-gray-700 w-32 flex-shrink-0">{day.date}</span>
+                    <div className="flex-1 grid grid-cols-3 gap-4">
                       <div>
-                        <span className="text-xs text-gray-400 block">Ingendo</span>
+                        <span className="text-xs text-gray-400 block">Ingendo zose</span>
                         <span className="text-sm font-bold text-gray-800">{day.trips}</span>
                       </div>
                       <div>
@@ -186,15 +167,8 @@ export default function Reports() {
                         <span className="text-sm font-bold text-gray-800">{day.passengers}</span>
                       </div>
                       <div>
-                        <span className="text-xs text-gray-400 block">Amafaranga</span>
+                        <span className="text-xs text-gray-400 block">Igiteranyo cy’Amafaranga</span>
                         <span className="text-sm font-bold text-[#4a6cf7]">RWF {day.revenue.toLocaleString()}</span>
-                      </div>
-                      <div className="flex gap-1.5 flex-wrap">
-                        {Object.entries(day.methods).map(([m,v]) => (
-                          <span key={m} className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{backgroundColor:METHOD_COLORS[m]+'22',color:METHOD_COLORS[m]}}>
-                            {m} {Math.round(v/day.revenue*100)}%
-                          </span>
-                        ))}
                       </div>
                     </div>
                   </button>
@@ -206,7 +180,7 @@ export default function Reports() {
                         <table className="w-full text-xs">
                           <thead>
                             <tr className="bg-blue-50/80">
-                              {['ID','Inzira','Umushoferi','Igihe','Abagenzi','RWF','Uburyo','Imiterere'].map(h => (
+                              {['ID','Inzira n’Icyerekezo','Umushoferi','Igihe','Abagenzi','Amafaranga (RWF)','Imiterere'].map(h => (
                                 <th key={h} className="px-4 py-2 text-left font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                               ))}
                             </tr>
@@ -226,20 +200,17 @@ export default function Reports() {
                                 <td className="px-4 py-2.5 text-center text-gray-700">{tx.passengers}</td>
                                 <td className="px-4 py-2.5 font-semibold text-gray-800">{tx.amount.toLocaleString()}</td>
                                 <td className="px-4 py-2.5">
-                                  <span className="font-semibold text-xs px-2 py-0.5 rounded-full" style={{backgroundColor:METHOD_COLORS[tx.method]+'22',color:METHOD_COLORS[tx.method]}}>{tx.method}</span>
-                                </td>
-                                <td className="px-4 py-2.5">
-                                  <span className={`font-semibold text-xs ${tx.status==='Success'?'text-emerald-600':tx.status==='Pending'?'text-amber-600':'text-red-500'}`}>{tx.status}</span>
+                                  <span className={`font-semibold text-xs ${tx.status==='Success'?'text-emerald-600':tx.status==='Pending'?'text-amber-600':'text-red-500'}`}>{tx.status==='Success'?'Byakunze':tx.status==='Pending'?'Biracyategereje':'Byanze'}</span>
                                 </td>
                               </tr>
                             ))}
                           </tbody>
                           <tfoot>
                             <tr className="bg-blue-50/80 font-bold">
-                              <td colSpan={4} className="px-4 py-2.5 text-gray-600 text-right text-xs">Igiteranyo:</td>
-                              <td className="px-4 py-2.5 text-gray-800">{day.passengers}</td>
+                              <td colSpan={4} className="px-4 py-2.5 text-gray-600 text-right text-xs">Igiteranyo cy’umunsi:</td>
+                              <td className="px-4 py-2.5 text-center text-gray-800">{day.passengers}</td>
                               <td className="px-4 py-2.5 text-[#4a6cf7]">{day.revenue.toLocaleString()}</td>
-                              <td colSpan={2}/>
+                              <td colSpan={1}/>
                             </tr>
                           </tfoot>
                         </table>

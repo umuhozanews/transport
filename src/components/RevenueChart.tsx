@@ -4,6 +4,7 @@ import {
   ResponsiveContainer, Cell,
 } from 'recharts'
 import { ChevronDown } from 'lucide-react'
+import { useLanguage } from '../store/LanguageContext'
 
 const monthlyData = [
   { month: 'Jan', revenue: 22000000 },
@@ -36,13 +37,14 @@ function CustomTooltip({ active, payload }: TipProps) {
 
 export default function RevenueChart() {
   const [year] = useState('2024')
+  const { t } = useLanguage()
 
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-700">Overall Revenue Report</h3>
-          <span className="text-xs text-gray-400">in Rwandan Francs (RWF)</span>
+          <h3 className="text-sm font-semibold text-gray-700">{t('db.revenueReport')}</h3>
+          <span className="text-xs text-gray-400">{t('db.currencyNote')}</span>
         </div>
         <button className="flex items-center gap-1 text-sm font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 rounded-lg px-3 py-1.5">
           {year} <ChevronDown size={14} />

@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import {
   LayoutDashboard, CreditCard, BarChart2, ScrollText,
-  Settings, LogOut, ChevronDown, ChevronRight,
+  Settings, LogOut, ChevronDown, ChevronRight, Languages
 } from 'lucide-react'
 import { useAuth, can } from '../store/AuthContext'
+import { useLanguage } from '../store/LanguageContext'
 
 function HorizonLogo() {
   return (
@@ -45,21 +46,22 @@ const ROLE_LABEL: Record<string, string> = { admin: 'Admin', agent: 'Agent', cap
 
 export default function Sidebar({ active, onNavigate, onLogout }: SidebarProps) {
   const { user } = useAuth()
+  const { language, setLanguage, t } = useLanguage()
   const [setupOpen, setSetupOpen] = useState(true)
   const role = user?.role ?? 'agent'
 
   const navItems: NavItem[] = [
-    { id: 'dashboard', label: 'Dashboard',             icon: <LayoutDashboard size={19}/> },
-    { id: 'payments',  label: 'Payment Transactions',  icon: <CreditCard size={19}/> },
-    ...(can.seeReports(role)  ? [{ id: 'reports', label: 'Reports',   icon: <BarChart2 size={19}/> }] : []),
-    ...(can.seeAuditLog(role) ? [{ id: 'audit',   label: 'Audit Log', icon: <ScrollText size={19}/> }] : []),
+    { id: 'dashboard', label: t('nav.dashboard'),    icon: <LayoutDashboard size={19}/> },
+    { id: 'payments',  label: t('nav.payments'),     icon: <CreditCard size={19}/> },
+    ...(can.seeReports(role)  ? [{ id: 'reports', label: t('nav.reports'),   icon: <BarChart2 size={19}/> }] : []),
+    ...(can.seeAuditLog(role) ? [{ id: 'audit',   label: t('nav.audit'),     icon: <ScrollText size={19}/> }] : []),
     ...(can.seeSetup(role) ? [{
-      id: 'setup', label: 'Setup', icon: <Settings size={19}/>,
+      id: 'setup', label: t('nav.setup'), icon: <Settings size={19}/>,
       children: [
-        { id: 'route-map',         label: 'Route Map' },
-        { id: 'payment-terminal',  label: 'Payment Terminal' },
-        { id: 'bus-profile',       label: 'Bus Profile' },
-        { id: 'bus-captain',       label: 'Bus Captain' },
+        { id: 'route-map',         label: t('nav.routeMap') },
+        { id: 'payment-terminal',  label: t('nav.paymentTerminal') },
+        { id: 'bus-profile',       label: t('nav.busProfile') },
+        { id: 'bus-captain',       label: t('nav.busCaptain') },
       ],
     }] : []),
   ]
@@ -139,12 +141,20 @@ export default function Sidebar({ active, onNavigate, onLogout }: SidebarProps) 
         })}
       </nav>
 
-      {/* Logout */}
-      <div className="px-4 pb-6">
+      {/* Language & Logout */}
+      <div className="px-4 pb-6 space-y-1">
+        <button
+          onClick={() => setLanguage(language === 'rw' ? 'en' : 'rw')}
+          className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-blue-200/65 hover:bg-white/10 hover:text-white transition-all duration-150"
+        >
+          <Languages size={19} className="text-blue-300/65"/>
+          {language === 'rw' ? 'English (EN)' : 'Kinyarwanda (RW)'}
+        </button>
+
         <button onClick={onLogout}
           className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-blue-200/65 hover:bg-white/10 hover:text-white transition-all duration-150">
           <LogOut size={19} className="text-blue-300/65"/>
-          Logout
+          {t('nav.logout')}
         </button>
       </div>
     </aside>
