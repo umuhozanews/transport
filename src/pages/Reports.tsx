@@ -6,10 +6,6 @@ import {
 import { ChevronDown, ChevronRight, TrendingUp, Users, DollarSign } from 'lucide-react'
 import { useApp } from '../store/AppContext'
 
-const METHOD_COLORS: Record<string, string> = {
-  MoMo:'#F59E0B', Cash:'#10B981', Airtel:'#EF4444', Card:'#3B82F6',
-}
-
 interface TipProps { active?:boolean; payload?:{value:number;name:string}[]; label?:string }
 function Tip({ active, payload, label }:TipProps) {
   if (!active||!payload?.length) return null
