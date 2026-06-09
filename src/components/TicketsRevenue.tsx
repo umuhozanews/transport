@@ -9,26 +9,9 @@ const METHOD_COLORS: Record<string, string> = {
 const todayKey = () =>
   new Intl.DateTimeFormat('sv-SE', { timeZone: 'Africa/Kigali' }).format(new Date())
 
-function AdultIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-      <circle cx="14" cy="9" r="5" fill="#0A2558"/>
-      <path d="M4 26c0-5.523 4.477-10 10-10s10 4.477 10 10" fill="#0A2558" opacity="0.8"/>
-    </svg>
-  )
-}
-function ChildIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      <circle cx="11" cy="7" r="4" fill="#4a6cf7"/>
-      <path d="M3 21c0-4.418 3.582-8 8-8s8 3.582 8 8" fill="#4a6cf7" opacity="0.8"/>
-    </svg>
-  )
-}
-
 export default function TicketsRevenue() {
   const { transactions } = useApp()
-  const { t } = useLanguage()
+  const { language, t } = useLanguage()
   const today = todayKey()
   const todayTx = transactions.filter(tx => tx.date.startsWith(today))
 

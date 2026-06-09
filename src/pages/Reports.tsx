@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Cell, PieChart, Pie, Legend,
+  ResponsiveContainer, Cell,
 } from 'recharts'
 import { ChevronDown, ChevronRight, TrendingUp, Users, DollarSign } from 'lucide-react'
 import { useApp } from '../store/AppContext'
@@ -48,13 +48,6 @@ export default function Reports() {
   const peakMonth = monthlyData.reduce((a,b) => a.revenue>b.revenue?a:b)
   const totalRevenue = monthlyData.reduce((s,d) => s+d.revenue, 0)
   const avgMonthly  = Math.floor(totalRevenue/12)
-
-  // ── payment method breakdown ─────────────────────────────────────────────
-  const paymentData = useMemo(() => {
-    const acc: Record<string,number> = {}
-    transactions.forEach(tx => { acc[tx.method] = (acc[tx.method]||0) + tx.amount })
-    return Object.entries(acc).map(([name,value]) => ({ name: name==='MoMo'?'MTN MoMo':name==='Airtel'?'Airtel Money':name, key:name, value, color:METHOD_COLORS[name]||'#94a3b8' }))
-  }, [transactions])
 
   // ── daily breakdown ──────────────────────────────────────────────────────
   const dailyData = useMemo(() => {
