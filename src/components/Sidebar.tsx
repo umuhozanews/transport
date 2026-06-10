@@ -67,7 +67,7 @@ export default function Sidebar({ active, onNavigate, onLogout }: SidebarProps) 
   ]
 
   return (
-    <aside className="fixed top-0 left-0 h-screen w-[280px] bg-[#0A2558] flex flex-col z-40">
+    <aside className="h-screen w-[280px] bg-[#0A2558] flex flex-col">
       {/* Logo */}
       <div className="px-6 py-5 border-b border-white/10">
         <div className="flex items-center gap-2.5">

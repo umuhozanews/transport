@@ -84,12 +84,9 @@ export default function App() {
   const ROLE_LABEL: Record<string, string> = { admin: 'Admin', agent: 'Agent', captain: 'Captain' }
 
   return (
-    <div className="min-h-screen bg-[#f0f2f7] flex relative">
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/40 z-30 lg:hidden" onClick={() => setSidebarOpen(false)}/>
-      )}
-
-      <div className={`fixed lg:sticky top-0 h-screen z-40 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+    <div className="min-h-screen bg-[#f0f2f7] flex overflow-hidden">
+      {/* Sidebar - fixed on mobile, sticky on desktop */}
+      <div className={`fixed lg:sticky top-0 h-screen z-50 transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0 shadow-xl lg:shadow-none'}`}>
         <Sidebar
           active={active}
           onNavigate={id => { setActive(id); setSidebarOpen(false) }}
@@ -97,9 +94,14 @@ export default function App() {
         />
       </div>
 
-      <div className="flex-1 flex flex-col min-h-screen min-w-0">
+      {/* Overlay for mobile sidebar */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden" onClick={() => setSidebarOpen(false)}/>
+      )}
+
+      <div className="flex-1 flex flex-col min-h-screen min-w-0 h-screen">
         {/* Topbar */}
-        <header className="bg-white border-b border-gray-200 px-4 lg:px-7 py-3 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+        <header className="bg-white border-b border-gray-200 px-4 lg:px-7 py-3 flex items-center justify-between sticky top-0 z-30 shadow-sm flex-shrink-0">
           <div className="flex items-center gap-2 lg:gap-3">
             <button className="lg:hidden p-1.5 rounded-lg hover:bg-gray-100" onClick={() => setSidebarOpen(true)}>
               <Menu size={20} className="text-gray-600"/>

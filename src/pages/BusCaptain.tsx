@@ -51,7 +51,7 @@ export default function BusCaptain() {
 
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label:'Abashoferi Bose',  value: captains.length },
           { label:'Abari mu Kazi',    value: captains.filter(c=>c.status==='On Duty').length },

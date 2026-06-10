@@ -31,7 +31,7 @@ export default function InsightCards() {
   const activeCaptains = captains.filter(c => c.status === 'On Duty').length
 
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <InsightCard icon={<MapPin size={26} className="text-[#4a6cf7]" strokeWidth={2}/>}    iconBg="bg-[#4a6cf7]/10" value={activeRoutes}   label={t('db.activeRoutes')}   total={`${t('db.totalRoutes')}: ${routes.length}`}/>
       <InsightCard icon={<BusFront size={26} className="text-blue-600" strokeWidth={2}/>}   iconBg="bg-blue-100"     value={busesRunning}   label={t('db.busRunning')}     total={`${t('db.totalBus')}: ${buses.length}`}/>
       <InsightCard icon={<UserCheck size={26} className="text-emerald-600" strokeWidth={2}/>} iconBg="bg-emerald-100" value={activeCaptains} label={t('db.activeCaptains')} total={`${t('db.totalCaptains')}: ${captains.length}`}/>

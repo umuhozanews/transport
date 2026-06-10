@@ -41,7 +41,7 @@ export default function PaymentTerminal() {
 
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {[
           { label: 'Ibikoresho byose',  value: terminals.length },
           { label: 'Biri gukora ubu',   value: terminals.filter(t => t.status === 'Online').length },
