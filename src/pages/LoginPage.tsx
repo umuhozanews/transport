@@ -1,7 +1,10 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Eye, EyeOff, LogIn, ChevronDown, ChevronUp, MapPin } from 'lucide-react'
 import { useAuth, DEMO_ACCOUNTS } from '../store/AuthContext'
-import { ROLE_LABEL, ROLE_BADGE_CLASS } from '../lib/roles'
+import { useRoleLabel } from '../lib/i18nHelpers'
+import { ROLE_BADGE_CLASS } from '../lib/roles'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 import LiveTracking from './LiveTracking'
 
 function HorizonLogoSVG() {
@@ -22,13 +25,8 @@ function HorizonLogoSVG() {
   )
 }
 
-const ROLE_BADGE: Record<string, { label: string; color: string }> = {
-  admin:   { label: ROLE_LABEL.admin, color: ROLE_BADGE_CLASS.admin },
-  agent:   { label: ROLE_LABEL.agent, color: ROLE_BADGE_CLASS.agent },
-  captain: { label: ROLE_LABEL.captain, color: ROLE_BADGE_CLASS.captain },
-}
-
 export default function LoginPage() {
+  const { t } = useTranslation()
   const { login } = useAuth()
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
@@ -42,10 +40,13 @@ export default function LoginPage() {
     return (
       <div className="min-h-screen bg-[#f0f2f7]">
         <header className="bg-[#0A2558] px-6 py-4 flex items-center justify-between">
-          <div className="text-white font-bold">HORIZON Express · Customer Tracking</div>
-          <button onClick={() => setShowTrack(false)} className="text-sm text-blue-200 hover:text-white font-semibold">
-            ← Back to Sign In
-          </button>
+          <div className="text-white font-bold">{t('login.customerTracking')}</div>
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher variant="dark" />
+            <button onClick={() => setShowTrack(false)} className="text-sm text-blue-200 hover:text-white font-semibold">
+              {t('login.backToSignIn')}
+            </button>
+          </div>
         </header>
         <main className="p-5 lg:p-7 max-w-6xl mx-auto">
           <LiveTracking publicView />
@@ -60,7 +61,7 @@ export default function LoginPage() {
     setLoading(true)
     await new Promise(r => setTimeout(r, 400))
     const result = await login(email.trim(), password)
-    if (!result.ok) setError(result.error ?? 'Unknown error.')
+    if (!result.ok) setError(result.error ?? t('login.error'))
     setLoading(false)
   }
 
@@ -68,9 +69,10 @@ export default function LoginPage() {
     setEmail(e); setPassword(p); setError('')
   }
 
+  const features = ['login.feature1', 'login.feature2', 'login.feature3', 'login.feature4'] as const
+
   return (
     <div className="min-h-screen flex" style={{ background: 'linear-gradient(135deg, #071a40 0%, #0A2558 60%, #0d2d6b 100%)' }}>
-      {/* Left panel — branding */}
       <div className="hidden lg:flex flex-col justify-between w-[420px] flex-shrink-0 p-12 border-r border-white/10">
         <div>
           <div className="flex items-center gap-3 mb-12">
@@ -81,37 +83,29 @@ export default function LoginPage() {
             </div>
           </div>
           <h1 className="text-3xl font-bold text-white leading-snug mb-4">
-            Bus Management<br/>
-            <span className="text-red-400">System</span>
+            {t('login.systemTitle')}<br/>
+            <span className="text-red-400">{t('login.systemTitleHighlight')}</span>
           </h1>
           <p className="text-blue-200/60 text-sm leading-relaxed">
-            Track buses, drivers, routes, and revenue — all in one place, in real time.
+            {t('login.systemDesc')}
           </p>
         </div>
 
         <div className="space-y-3">
-          {[
-            'Live bus tracking for customers',
-            'Active routes across Rwanda',
-            'Station workers & driver management',
-            'Real-time operations dashboard',
-          ].map(item => (
-            <div key={item} className="flex items-center gap-3 text-sm text-blue-200/70">
+          {features.map(key => (
+            <div key={key} className="flex items-center gap-3 text-sm text-blue-200/70">
               <div className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0"/>
-              {item}
+              {t(key)}
             </div>
           ))}
-          <p className="text-xs text-white/30 pt-4 border-t border-white/10">
-            HORIZON Express Ltd · TIN: 102 456 789<br/>
-            Nyabugogo, Kigali, Rwanda
+          <p className="text-xs text-white/30 pt-4 border-t border-white/10 whitespace-pre-line">
+            {t('login.companyFooter')}
           </p>
         </div>
       </div>
 
-      {/* Right panel — login form */}
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-md">
-          {/* Mobile logo */}
           <div className="flex lg:hidden items-center gap-3 justify-center mb-8">
             <HorizonLogoSVG />
             <div>
@@ -120,17 +114,20 @@ export default function LoginPage() {
             </div>
           </div>
 
+          <div className="flex justify-end mb-3 lg:absolute lg:top-6 lg:right-6">
+            <LanguageSwitcher variant="dark" />
+          </div>
+
           <div className="bg-white rounded-3xl shadow-2xl p-8">
             <div className="mb-7">
-              <h2 className="text-2xl font-bold text-gray-800">Sign In</h2>
-              <p className="text-sm text-gray-400 mt-1">Enter your credentials to access the system</p>
+              <h2 className="text-2xl font-bold text-gray-800">{t('login.title')}</h2>
+              <p className="text-sm text-gray-400 mt-1">{t('login.subtitle')}</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Email */}
               <div>
                 <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">
-                  Email Address
+                  {t('login.email')}
                 </label>
                 <input
                   type="email"
@@ -143,10 +140,9 @@ export default function LoginPage() {
                 />
               </div>
 
-              {/* Password */}
               <div>
                 <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">
-                  Password
+                  {t('login.password')}
                 </label>
                 <div className="relative">
                   <input
@@ -165,14 +161,12 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Error */}
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600 font-medium">
                   {error}
                 </div>
               )}
 
-              {/* Submit */}
               <button
                 type="submit"
                 disabled={loading}
@@ -180,44 +174,29 @@ export default function LoginPage() {
               >
                 {loading
                   ? <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin"/>
-                  : <><LogIn size={17}/> Sign In</>
+                  : <><LogIn size={17}/> {t('login.signIn')}</>
                 }
               </button>
             </form>
 
-            {/* Track without login */}
             <button
               onClick={() => setShowTrack(true)}
               className="w-full mt-4 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-[#0A2558]/20 text-[#0A2558] font-bold text-sm hover:bg-blue-50 transition-colors"
             >
-              <MapPin size={16}/> Track Buses — No login required
+              <MapPin size={16}/> {t('login.trackBuses')}
             </button>
 
-            {/* Demo credentials */}
             <div className="mt-6 border-t border-gray-100 pt-5">
               <button onClick={() => setShowDemo(v => !v)}
                 className="w-full flex items-center justify-between text-xs font-bold text-gray-500 hover:text-gray-700 transition-colors">
-                <span>Demo Accounts — click to fill</span>
+                <span>{t('login.demoAccounts')}</span>
                 {showDemo ? <ChevronUp size={15}/> : <ChevronDown size={15}/>}
               </button>
 
               {showDemo && (
                 <div className="mt-3 space-y-2">
                   {DEMO_ACCOUNTS.map(u => (
-                    <button
-                      key={u.email}
-                      onClick={() => fillCredentials(u.email, u.password)}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border border-gray-100 hover:border-[#0A2558]/30 hover:bg-blue-50/40 transition-all text-left group"
-                    >
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${ROLE_BADGE[u.role].color}`}>
-                        {ROLE_BADGE[u.role].label}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-semibold text-gray-700 truncate">{u.name}</div>
-                        <div className="text-[10px] text-gray-400 truncate">{u.email}</div>
-                      </div>
-                      <span className="font-mono text-[10px] text-gray-400 group-hover:text-[#0A2558] flex-shrink-0">{u.password}</span>
-                    </button>
+                    <DemoAccountRow key={u.email} account={u} onSelect={fillCredentials} />
                   ))}
                 </div>
               )}
@@ -225,10 +204,29 @@ export default function LoginPage() {
           </div>
 
           <p className="text-center text-white/30 text-xs mt-6">
-            © 2024 HORIZON Express Ltd · Kigali, Rwanda · v1.0.0
+            {t('login.copyright')}
           </p>
         </div>
       </div>
     </div>
+  )
+}
+
+function DemoAccountRow({ account, onSelect }: { account: typeof DEMO_ACCOUNTS[number]; onSelect: (e: string, p: string) => void }) {
+  const roleLabel = useRoleLabel(account.role)
+  return (
+    <button
+      onClick={() => onSelect(account.email, account.password)}
+      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border border-gray-100 hover:border-[#0A2558]/30 hover:bg-blue-50/40 transition-all text-left group"
+    >
+      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${ROLE_BADGE_CLASS[account.role]}`}>
+        {roleLabel}
+      </span>
+      <div className="flex-1 min-w-0">
+        <div className="text-xs font-semibold text-gray-700 truncate">{account.name}</div>
+        <div className="text-[10px] text-gray-400 truncate">{account.email}</div>
+      </div>
+      <span className="font-mono text-[10px] text-gray-400 group-hover:text-[#0A2558] flex-shrink-0">{account.password}</span>
+    </button>
   )
 }

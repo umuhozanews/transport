@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { MapPin, BusFront, UserCheck } from 'lucide-react'
 import { useApp } from '../store/AppContext'
 import { api } from '../api/client'
@@ -25,6 +26,7 @@ function InsightCard({ icon, iconBg, value, label, total }: CardProps) {
 }
 
 export default function InsightCards() {
+  const { t } = useTranslation()
   const { routes, buses } = useApp()
   const [activeWorkers, setActiveWorkers] = useState(0)
 
@@ -39,9 +41,9 @@ export default function InsightCards() {
 
   return (
     <div className="grid grid-cols-3 gap-4">
-      <InsightCard icon={<MapPin size={26} className="text-[#4a6cf7]" strokeWidth={2}/>}    iconBg="bg-[#4a6cf7]/10" value={activeRoutes}   label="Active Routes"   total={`${routes.length} routes total`}/>
-      <InsightCard icon={<BusFront size={26} className="text-blue-600" strokeWidth={2}/>}   iconBg="bg-blue-100"     value={activeBuses}    label="Active Buses"    total={`${buses.length} buses in fleet`}/>
-      <InsightCard icon={<UserCheck size={26} className="text-emerald-600" strokeWidth={2}/>} iconBg="bg-emerald-100" value={activeWorkers} label="Active Workers"  total="Station staff & drivers on duty"/>
+      <InsightCard icon={<MapPin size={26} className="text-[#4a6cf7]" strokeWidth={2}/>} iconBg="bg-[#4a6cf7]/10" value={activeRoutes} label={t('dashboard.activeRoutes')} total={t('dashboard.routesTotal', { count: routes.length })}/>
+      <InsightCard icon={<BusFront size={26} className="text-blue-600" strokeWidth={2}/>} iconBg="bg-blue-100" value={activeBuses} label={t('dashboard.activeBuses')} total={t('dashboard.busesInFleet', { count: buses.length })}/>
+      <InsightCard icon={<UserCheck size={26} className="text-emerald-600" strokeWidth={2}/>} iconBg="bg-emerald-100" value={activeWorkers} label={t('dashboard.activeWorkers')} total={t('dashboard.workersOnDuty')}/>
     </div>
   )
 }

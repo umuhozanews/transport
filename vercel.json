@@ -6,9 +6,13 @@
     { "source": "/api/(.*)", "destination": "/api" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
+  "env": {
+    "JWT_SECRET": "horizon-express-jwt-production-secret-2024"
+  },
   "functions": {
     "api/index.ts": {
-      "includeFiles": "server/prisma/dev.db"
+      "maxDuration": 60,
+      "includeFiles": "server/{dist/**,prisma/dev.db,node_modules/.prisma/**,node_modules/@prisma/client/**}"
     }
   }
 }

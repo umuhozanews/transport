@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useApp } from '../store/AppContext'
 
 function AdultIcon() {
@@ -18,6 +19,7 @@ function ChildIcon() {
 }
 
 export default function PassengersToday() {
+  const { t } = useTranslation()
   const { routes, buses, captains } = useApp()
 
   const activeBuses = buses.filter(b => b.status === 'Active' || b.status === 'In Service').length
@@ -26,19 +28,19 @@ export default function PassengersToday() {
 
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm">
-      <h3 className="text-sm font-bold text-gray-700 mb-4">Today's Operations</h3>
+      <h3 className="text-sm font-bold text-gray-700 mb-4">{t('dashboard.todayOperations')}</h3>
       <div className="grid grid-cols-3 gap-4 mb-5">
         <div className="bg-blue-50 rounded-xl p-4 text-center">
           <div className="text-2xl font-bold text-[#0A2558]">{String(activeBuses).padStart(2, '0')}</div>
-          <div className="text-xs text-gray-500 mt-1">Buses running</div>
+          <div className="text-xs text-gray-500 mt-1">{t('dashboard.busesRunning')}</div>
         </div>
         <div className="bg-indigo-50 rounded-xl p-4 text-center">
           <div className="text-2xl font-bold text-[#4a6cf7]">{String(activeRoutes).padStart(2, '0')}</div>
-          <div className="text-xs text-gray-500 mt-1">Active routes</div>
+          <div className="text-xs text-gray-500 mt-1">{t('dashboard.activeRoutes')}</div>
         </div>
         <div className="bg-emerald-50 rounded-xl p-4 text-center">
           <div className="text-2xl font-bold text-emerald-700">{String(workersOnDuty).padStart(2, '0')}</div>
-          <div className="text-xs text-gray-500 mt-1">Drivers on duty</div>
+          <div className="text-xs text-gray-500 mt-1">{t('dashboard.driversOnDuty')}</div>
         </div>
       </div>
       <div className="flex gap-4">
@@ -47,11 +49,11 @@ export default function PassengersToday() {
             <AdultIcon />
           </div>
           <div>
-            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Fleet capacity</div>
+            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">{t('dashboard.fleetCapacity')}</div>
             <div className="text-2xl font-bold text-gray-800">
               {buses.reduce((s, b) => s + b.capacity, 0).toLocaleString()}
             </div>
-            <div className="text-xs text-gray-400">Total seats available</div>
+            <div className="text-xs text-gray-400">{t('dashboard.totalSeats')}</div>
           </div>
         </div>
         <div className="flex items-center gap-3 bg-indigo-50 rounded-xl px-4 py-3 flex-1">
@@ -59,9 +61,9 @@ export default function PassengersToday() {
             <ChildIcon />
           </div>
           <div>
-            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Stations</div>
+            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">{t('dashboard.stations')}</div>
             <div className="text-2xl font-bold text-gray-800">{routes.length}</div>
-            <div className="text-xs text-gray-400">Routes in network</div>
+            <div className="text-xs text-gray-400">{t('dashboard.routesInNetwork')}</div>
           </div>
         </div>
       </div>

@@ -1,13 +1,10 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Plus, Pencil, Trash2, Bus as BusIcon } from 'lucide-react'
 import { useApp } from '../store/AppContext'
 import { type Bus, type BusStatus } from '../types'
 import Badge from '../components/shared/Badge'
 import Modal from '../components/shared/Modal'
-
-const statusVariant: Record<BusStatus,'success'|'info'|'warning'|'danger'> = {
-  Active: 'success', 'In Service': 'info', Maintenance: 'warning', Retired: 'danger',
-}
 
 const empty: Omit<Bus,'id'> = {
   regNumber:'', model:'', capacity:46, type:'AC Coach',
@@ -39,6 +36,8 @@ const F = ({ label, name, type = 'text', value, onChange, autoFocus, onKeyDown }
 )
 
 export default function BusProfile() {
+  const { t } = useTranslation()
+  const label = (s: string) => t(`status.${s}`, { defaultValue: s })
   const { buses, routes, captains, addBus, updateBus, deleteBus } = useApp()
   const [modal, setModal] = useState<null | 'add' | 'edit' | 'delete'>(null)
   const [selected, setSelected] = useState<Bus | null>(null)
@@ -58,15 +57,20 @@ export default function BusProfile() {
     setModal(null)
   }
 
+  const tableCols = [
+    t('busProfile.colPlate'), t('busProfile.colModel'), t('busProfile.colType'),
+    t('busProfile.colCapacity'), t('busProfile.colRoute'), t('busProfile.colCaptain'),
+    t('common.status'), t('busProfile.colLastService'), t('busProfile.colTotalKm'), t('common.actions'),
+  ]
 
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label:'Imodoka Zose',     value: buses.length },
-          { label:'Zikorwa',          value: buses.filter(b => b.status==='Active' || b.status==='In Service').length },
-          { label:'Gusanaruwa',       value: buses.filter(b => b.status==='Maintenance').length },
-          { label:'Intebe Zose',      value: `${buses.reduce((s,b) => s+b.capacity, 0)} intebe` },
+          { label: t('busProfile.totalBuses'), value: buses.length },
+          { label: t('busProfile.inService'), value: buses.filter(b => b.status==='Active' || b.status==='In Service').length },
+          { label: t('busProfile.maintenance'), value: buses.filter(b => b.status==='Maintenance').length },
+          { label: t('busProfile.totalSeats'), value: t('busProfile.seatsUnit', { count: buses.reduce((s,b) => s+b.capacity, 0) }) },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-2xl p-4 shadow-sm">
             <p className="text-xs text-gray-500 font-medium">{s.label}</p>
@@ -77,16 +81,16 @@ export default function BusProfile() {
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2"><BusIcon size={16}/> Imbaga y'Imodoka — Bus Fleet</h3>
+          <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2"><BusIcon size={16}/> {t('busProfile.title')}</h3>
           <button onClick={openAdd} className="flex items-center gap-2 bg-[#0A2558] text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-[#0d2d6b] transition-colors">
-            <Plus size={15}/> Ongeraho Bisi
+            <Plus size={15}/> {t('busProfile.addBus')}
           </button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50">
-                {['Plaque','Modeli','Ubwoko','Intebe','Inzira','Umushoferi','Imiterere','Isanaruwe','KM Yose','Ibikorwa'].map(h => (
+                {tableCols.map(h => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -104,7 +108,7 @@ export default function BusProfile() {
                       : <span className="text-gray-400">—</span>}
                   </td>
                   <td className="px-4 py-3.5 text-gray-700 whitespace-nowrap">{b.captain}</td>
-                  <td className="px-4 py-3.5"><Badge label={b.status} variant={statusVariant[b.status]}/></td>
+                  <td className="px-4 py-3.5"><Badge label={label(b.status)} variant={b.status === 'Active' || b.status === 'In Service' ? 'success' : b.status === 'Maintenance' ? 'warning' : 'danger'}/></td>
                   <td className="px-4 py-3.5 text-gray-500 whitespace-nowrap">{b.lastService}</td>
                   <td className="px-4 py-3.5 text-gray-600">{b.totalKm.toLocaleString()}</td>
                   <td className="px-4 py-3.5">
@@ -116,7 +120,7 @@ export default function BusProfile() {
                 </tr>
               ))}
               {buses.length === 0 && (
-                <tr><td colSpan={10} className="px-5 py-12 text-center text-gray-400">Nta modoka. Ongeraho imwe.</td></tr>
+                <tr><td colSpan={10} className="px-5 py-12 text-center text-gray-400">{t('busProfile.empty')}</td></tr>
               )}
             </tbody>
           </table>
@@ -124,63 +128,65 @@ export default function BusProfile() {
       </div>
 
       {(modal==='add'||modal==='edit') && (
-        <Modal title={modal==='add' ? 'Ongeraho Bisi Nshya' : `Hindura — ${selected?.regNumber}`}
+        <Modal title={modal==='add' ? t('busProfile.addTitle') : t('busProfile.editTitle', { reg: selected?.regNumber })}
           onClose={() => setModal(null)}
           footer={<>
-            <button onClick={() => setModal(null)} className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Reka</button>
-            <button onClick={save} className="px-4 py-2 rounded-xl bg-[#0A2558] text-white text-sm font-semibold hover:bg-[#0d2d6b]">Bika</button>
+            <button onClick={() => setModal(null)} className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">{t('common.cancel')}</button>
+            <button onClick={save} className="px-4 py-2 rounded-xl bg-[#0A2558] text-white text-sm font-semibold hover:bg-[#0d2d6b]">{t('common.save')}</button>
           </>}>
           <div className="grid grid-cols-2 gap-4">
-            <F label="Plaque (e.g. RAA 001 A)" name="regNumber" value={form.regNumber} onChange={handleFieldChange} autoFocus onKeyDown={e => { if(e.key==='Enter' && form.regNumber) save() }}/>
-            <F label="Modeli (e.g. Yutong ZK6122)" name="model" value={form.model} onChange={handleFieldChange}/>
+            <F label={t('busProfile.fieldPlate')} name="regNumber" value={form.regNumber} onChange={handleFieldChange} autoFocus onKeyDown={e => { if(e.key==='Enter' && form.regNumber) save() }}/>
+            <F label={t('busProfile.fieldModel')} name="model" value={form.model} onChange={handleFieldChange}/>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Ubwoko</label>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">{t('busProfile.fieldType')}</label>
               <select value={form.type} onChange={e => setForm(f => ({...f,type:e.target.value}))}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]/30">
                 <option>AC Coach</option><option>Standard</option><option>Mini Bus</option>
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Imiterere</label>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">{t('common.status')}</label>
               <select value={form.status} onChange={e => setForm(f => ({...f,status:e.target.value as BusStatus}))}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]/30">
-                <option>Active</option><option>In Service</option><option>Maintenance</option><option>Retired</option>
+                {(['Active', 'In Service', 'Maintenance', 'Retired'] as BusStatus[]).map(s => (
+                  <option key={s} value={s}>{label(s)}</option>
+                ))}
               </select>
             </div>
-            <F label="Umubare w'Intebe" name="capacity" type="number" value={form.capacity} onChange={handleFieldChange}/>
+            <F label={t('busProfile.fieldCapacity')} name="capacity" type="number" value={form.capacity} onChange={handleFieldChange}/>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Inzira</label>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">{t('busProfile.fieldRoute')}</label>
               <select value={form.route} onChange={e => setForm(f => ({...f,route:e.target.value}))}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]/30">
-                <option value="—">— Ntiyagenewe —</option>
+                <option value="—">{t('common.notAssigned')}</option>
                 {routes.filter(r => r.status==='Active').map(r => (
                   <option key={r.id} value={r.number}>{r.number} — {r.from} → {r.to}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Umushoferi</label>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">{t('busProfile.fieldCaptain')}</label>
               <select value={form.captain} onChange={e => setForm(f => ({...f,captain:e.target.value}))}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]/30">
-                <option value="—">— Nta mushoferi —</option>
+                <option value="—">{t('common.noDriver')}</option>
                 {captains.map(c => (
                   <option key={c.id} value={c.name}>{c.name}</option>
                 ))}
               </select>
             </div>
-            <F label="Isanaruwe rya Nyuma" name="lastService" type="date" value={form.lastService} onChange={handleFieldChange}/>
-            <F label="KM Yose" name="totalKm" type="number" value={form.totalKm} onChange={handleFieldChange}/>
+            <F label={t('busProfile.fieldLastService')} name="lastService" type="date" value={form.lastService} onChange={handleFieldChange}/>
+            <F label={t('busProfile.fieldTotalKm')} name="totalKm" type="number" value={form.totalKm} onChange={handleFieldChange}/>
           </div>
         </Modal>
       )}
 
       {modal==='delete' && selected && (
-        <Modal title="Siba Bisi" onClose={() => setModal(null)}
+        <Modal title={t('busProfile.deleteTitle')} onClose={() => setModal(null)}
           footer={<>
-            <button onClick={() => setModal(null)} className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Reka</button>
-            <button onClick={async () => { await deleteBus(selected!.id); setModal(null) }} className="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700">Siba</button>
+            <button onClick={() => setModal(null)} className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">{t('common.cancel')}</button>
+            <button onClick={async () => { await deleteBus(selected!.id); setModal(null) }} className="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700">{t('common.delete')}</button>
           </>}>
-          <p className="text-sm text-gray-600">Urashaka gusiba bisi <strong>{selected.regNumber}</strong> ({selected.model})?</p>
+          <p className="text-sm text-gray-600">{t('busProfile.deleteConfirm', { reg: selected.regNumber, model: selected.model })}</p>
         </Modal>
       )}
     </div>

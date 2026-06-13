@@ -1,10 +1,11 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   LayoutDashboard, BarChart2, ScrollText,
   Settings, LogOut, ChevronDown, ChevronRight, Radio,
 } from 'lucide-react'
 import { useAuth, can } from '../store/AuthContext'
-import { ROLE_LABEL } from '../lib/roles'
+import { useRoleLabel } from '../lib/i18nHelpers'
 
 function HorizonLogo() {
   return (
@@ -26,9 +27,9 @@ function HorizonLogo() {
 
 interface NavItem {
   id: string
-  label: string
+  labelKey: string
   icon: React.ReactNode
-  children?: { id: string; label: string }[]
+  children?: { id: string; labelKey: string }[]
 }
 
 interface SidebarProps {
@@ -44,28 +45,29 @@ const ROLE_COLOR: Record<string, string> = {
 }
 
 export default function Sidebar({ active, onNavigate, onLogout }: SidebarProps) {
+  const { t } = useTranslation()
   const { user } = useAuth()
+  const roleLabel = useRoleLabel(user?.role ?? 'agent')
   const [setupOpen, setSetupOpen] = useState(true)
   const role = user?.role ?? 'agent'
 
   const navItems: NavItem[] = [
-    { id: 'dashboard', label: 'Operations',            icon: <LayoutDashboard size={19}/> },
-    { id: 'live-tracking', label: 'Live Tracking',     icon: <Radio size={19}/> },
-    ...(can.seeReports(role)  ? [{ id: 'reports', label: 'Reports',   icon: <BarChart2 size={19}/> }] : []),
-    ...(can.seeAuditLog(role) ? [{ id: 'audit',   label: 'Audit Log', icon: <ScrollText size={19}/> }] : []),
+    { id: 'dashboard', labelKey: 'nav.operations', icon: <LayoutDashboard size={19}/> },
+    { id: 'live-tracking', labelKey: 'nav.liveTracking', icon: <Radio size={19}/> },
+    ...(can.seeReports(role)  ? [{ id: 'reports', labelKey: 'nav.reports', icon: <BarChart2 size={19}/> }] : []),
+    ...(can.seeAuditLog(role) ? [{ id: 'audit', labelKey: 'nav.audit', icon: <ScrollText size={19}/> }] : []),
     ...(can.seeSetup(role) ? [{
-      id: 'setup', label: 'Setup', icon: <Settings size={19}/>,
+      id: 'setup', labelKey: 'nav.setup', icon: <Settings size={19}/>,
       children: [
-        { id: 'route-map',   label: 'Route Map' },
-        { id: 'bus-profile', label: 'Bus Profile' },
-        { id: 'bus-captain', label: 'Drivers' },
+        { id: 'route-map', labelKey: 'nav.routeMap' },
+        { id: 'bus-profile', labelKey: 'nav.busProfile' },
+        { id: 'bus-captain', labelKey: 'nav.drivers' },
       ],
     }] : []),
   ]
 
   return (
     <aside className="fixed top-0 left-0 h-screen w-[280px] bg-[#0A2558] flex flex-col z-40">
-      {/* Logo */}
       <div className="px-6 py-5 border-b border-white/10">
         <div className="flex items-center gap-2.5">
           <HorizonLogo />
@@ -74,10 +76,9 @@ export default function Sidebar({ active, onNavigate, onLogout }: SidebarProps) 
             <div className="text-[11px] font-bold text-white/60 tracking-widest leading-tight">EXPRESS</div>
           </div>
         </div>
-        <p className="text-[10px] text-blue-300/40 mt-1.5 tracking-widest uppercase">Bus Company · Rwanda</p>
+        <p className="text-[10px] text-blue-300/40 mt-1.5 tracking-widest uppercase">{t('common.busCompany')}</p>
       </div>
 
-      {/* Logged-in user strip */}
       {user && (
         <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
@@ -88,12 +89,11 @@ export default function Sidebar({ active, onNavigate, onLogout }: SidebarProps) 
             <div className="text-[10px] text-blue-300/60 truncate">{user.title}</div>
           </div>
           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${ROLE_COLOR[role]}`}>
-            {ROLE_LABEL[role as keyof typeof ROLE_LABEL] ?? role}
+            {roleLabel}
           </span>
         </div>
       )}
 
-      {/* Nav */}
       <nav className="flex-1 px-4 py-4 space-y-0.5 overflow-y-auto">
         {navItems.map(item => {
           const isActive    = active === item.id
@@ -109,7 +109,7 @@ export default function Sidebar({ active, onNavigate, onLogout }: SidebarProps) 
                 }`}
               >
                 <span className={isActive ? 'text-white' : 'text-blue-300/65'}>{item.icon}</span>
-                <span className="flex-1 text-left">{item.label}</span>
+                <span className="flex-1 text-left">{t(item.labelKey)}</span>
                 {hasChildren && (
                   <span className="text-blue-300/65">
                     {setupOpen ? <ChevronDown size={15}/> : <ChevronRight size={15}/>}
@@ -127,7 +127,7 @@ export default function Sidebar({ active, onNavigate, onLogout }: SidebarProps) 
                           childActive ? 'text-white font-semibold' : 'text-blue-200/55 hover:text-white font-medium'
                         }`}>
                         <span className="w-1.5 h-1.5 rounded-full border border-current flex-shrink-0"/>
-                        {child.label}
+                        {t(child.labelKey)}
                       </button>
                     )
                   })}
@@ -138,12 +138,11 @@ export default function Sidebar({ active, onNavigate, onLogout }: SidebarProps) 
         })}
       </nav>
 
-      {/* Logout */}
       <div className="px-4 pb-6">
         <button onClick={onLogout}
           className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-blue-200/65 hover:bg-white/10 hover:text-white transition-all duration-150">
           <LogOut size={19} className="text-blue-300/65"/>
-          Logout
+          {t('common.logout')}
         </button>
       </div>
     </aside>
