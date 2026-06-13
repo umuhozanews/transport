@@ -1,0 +1,205 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  agent
+  captain
+}
+
+enum RouteStatus {
+  Active
+  Inactive
+}
+
+enum BusStatus {
+  Active
+  InService
+  Maintenance
+  Retired
+}
+
+enum CaptainStatus {
+  OnDuty
+  OffDuty
+  OnLeave
+}
+
+enum TerminalStatus {
+  Online
+  Offline
+  Maintenance
+}
+
+enum PaymentMethod {
+  MoMo
+  Airtel
+  Cash
+  Card
+}
+
+enum TxStatus {
+  Success
+  Pending
+  Failed
+}
+
+enum AuditAction {
+  Created
+  Updated
+  Deleted
+  Login
+  Logout
+  Assigned
+}
+
+enum AuditModule {
+  Route
+  Bus
+  Captain
+  Payment
+  System
+  Terminal
+  Tracking
+}
+
+enum DutyStatus {
+  OnDuty
+  OffDuty
+}
+
+enum TrackingStatus {
+  OnRoute
+  AtStop
+  Idle
+}
+
+model User {
+  id        String     @id @default(cuid())
+  name      String
+  email     String     @unique
+  password  String
+  role      Role
+  title     String
+  station   String?
+  dutyStatus DutyStatus @default(OnDuty)
+  captainId String?    @unique
+  captain   Captain?   @relation(fields: [captainId], references: [id], onDelete: SetNull)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Route {
+  id           String        @id @default(cuid())
+  number       String        @unique
+  from         String
+  to           String
+  distance     Int
+  fare         Int
+  stops        Int
+  status       RouteStatus   @default(Active)
+  buses        Bus[]
+  captains     Captain[]
+  transactions Transaction[]
+  routeStops   RouteStop[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model RouteStop {
+  id        String @id @default(cuid())
+  routeId   String
+  route     Route  @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  name      String
+  latitude  Float
+  longitude Float
+  order     Int
+}
+
+model Bus {
+  id          String    @id @default(cuid())
+  regNumber   String    @unique
+  model       String
+  capacity    Int
+  type        String
+  routeId     String?
+  route       Route?    @relation(fields: [routeId], references: [id], onDelete: SetNull)
+  captainId   String?
+  captain     Captain?  @relation(fields: [captainId], references: [id], onDelete: SetNull)
+  status           BusStatus      @default(Active)
+  lastService      DateTime
+  totalKm          Int
+  latitude         Float?
+  longitude        Float?
+  currentStop      String?
+  lastLocationAt   DateTime?
+  trackingStatus   TrackingStatus @default(Idle)
+  stopProgress     Int            @default(0)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model Captain {
+  id            String        @id @default(cuid())
+  name          String
+  phone         String
+  license       String        @unique
+  licenseExpiry DateTime
+  routeId       String?
+  route         Route?        @relation(fields: [routeId], references: [id], onDelete: SetNull)
+  rating        Float
+  experience    Int
+  status        CaptainStatus @default(OffDuty)
+  joinDate      DateTime
+  user          User?
+  buses         Bus[]
+  transactions  Transaction[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Terminal {
+  id         String           @id
+  name       String
+  location   String
+  type       String
+  status     TerminalStatus   @default(Offline)
+  lastTx     DateTime?
+  totalToday Int              @default(0)
+  accepts    Json
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+}
+
+model Transaction {
+  id          String        @id @default(cuid())
+  routeId     String?
+  route       Route?        @relation(fields: [routeId], references: [id], onDelete: SetNull)
+  routeNumber String
+  from        String
+  to          String
+  captainId   String?
+  captain     Captain?      @relation(fields: [captainId], references: [id], onDelete: SetNull)
+  captainName String
+  date        DateTime
+  amount      Int
+  method      PaymentMethod
+  status      TxStatus
+  passengers  Int
+  createdAt   DateTime      @default(now())
+}
+
+model AuditLog {
+  id        String      @id @default(cuid())
+  timestamp DateTime    @default(now())
+  user      String
+  action    AuditAction
+  module    AuditModule
+  detail    String
+}

@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { Eye, EyeOff, LogIn, ChevronDown, ChevronUp } from 'lucide-react'
-import { useAuth, SYSTEM_USERS } from '../store/AuthContext'
+import { Eye, EyeOff, LogIn, ChevronDown, ChevronUp, MapPin } from 'lucide-react'
+import { useAuth, DEMO_ACCOUNTS } from '../store/AuthContext'
+import { ROLE_LABEL, ROLE_BADGE_CLASS } from '../lib/roles'
+import LiveTracking from './LiveTracking'
 
 function HorizonLogoSVG() {
   return (
@@ -21,9 +23,9 @@ function HorizonLogoSVG() {
 }
 
 const ROLE_BADGE: Record<string, { label: string; color: string }> = {
-  admin:   { label: 'Admin',   color: 'bg-[#0A2558] text-white' },
-  agent:   { label: 'Agent',   color: 'bg-emerald-700 text-white' },
-  captain: { label: 'Captain', color: 'bg-amber-600 text-white' },
+  admin:   { label: ROLE_LABEL.admin, color: ROLE_BADGE_CLASS.admin },
+  agent:   { label: ROLE_LABEL.agent, color: ROLE_BADGE_CLASS.agent },
+  captain: { label: ROLE_LABEL.captain, color: ROLE_BADGE_CLASS.captain },
 }
 
 export default function LoginPage() {
@@ -34,13 +36,30 @@ export default function LoginPage() {
   const [error, setError]       = useState('')
   const [loading, setLoading]   = useState(false)
   const [showDemo, setShowDemo] = useState(false)
+  const [showTrack, setShowTrack] = useState(false)
+
+  if (showTrack) {
+    return (
+      <div className="min-h-screen bg-[#f0f2f7]">
+        <header className="bg-[#0A2558] px-6 py-4 flex items-center justify-between">
+          <div className="text-white font-bold">HORIZON Express · Customer Tracking</div>
+          <button onClick={() => setShowTrack(false)} className="text-sm text-blue-200 hover:text-white font-semibold">
+            ← Back to Sign In
+          </button>
+        </header>
+        <main className="p-5 lg:p-7 max-w-6xl mx-auto">
+          <LiveTracking publicView />
+        </main>
+      </div>
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
     await new Promise(r => setTimeout(r, 400))
-    const result = login(email.trim(), password)
+    const result = await login(email.trim(), password)
     if (!result.ok) setError(result.error ?? 'Unknown error.')
     setLoading(false)
   }
@@ -72,10 +91,10 @@ export default function LoginPage() {
 
         <div className="space-y-3">
           {[
-            '9 buses in operation',
-            '7 active routes across Rwanda',
-            'Payments: MTN MoMo, Airtel, Cash',
-            'Real-time daily reports',
+            'Live bus tracking for customers',
+            'Active routes across Rwanda',
+            'Station workers & driver management',
+            'Real-time operations dashboard',
           ].map(item => (
             <div key={item} className="flex items-center gap-3 text-sm text-blue-200/70">
               <div className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0"/>
@@ -166,6 +185,14 @@ export default function LoginPage() {
               </button>
             </form>
 
+            {/* Track without login */}
+            <button
+              onClick={() => setShowTrack(true)}
+              className="w-full mt-4 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-[#0A2558]/20 text-[#0A2558] font-bold text-sm hover:bg-blue-50 transition-colors"
+            >
+              <MapPin size={16}/> Track Buses — No login required
+            </button>
+
             {/* Demo credentials */}
             <div className="mt-6 border-t border-gray-100 pt-5">
               <button onClick={() => setShowDemo(v => !v)}
@@ -176,9 +203,9 @@ export default function LoginPage() {
 
               {showDemo && (
                 <div className="mt-3 space-y-2">
-                  {SYSTEM_USERS.map(u => (
+                  {DEMO_ACCOUNTS.map(u => (
                     <button
-                      key={u.id}
+                      key={u.email}
                       onClick={() => fillCredentials(u.email, u.password)}
                       className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border border-gray-100 hover:border-[#0A2558]/30 hover:bg-blue-50/40 transition-all text-left group"
                     >

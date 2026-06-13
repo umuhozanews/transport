@@ -1,170 +1,144 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
-import {
-  transactions as defaultTx,
-  routes as defaultRoutes,
-  buses as defaultBuses,
-  captains as defaultCaptains,
-  terminals as defaultTerminals,
-  auditLogs as defaultLogs,
-  type Transaction, type Route, type Bus, type Captain,
-  type Terminal, type AuditEntry,
-} from '../data/mockData'
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
+import { api } from '../api/client'
+import { useAuth } from './AuthContext'
+import type { Route, Bus, Captain, AuditEntry } from '../types'
 
-// ── helpers ──────────────────────────────────────────────────────────────────
-function currentUserName(): string {
-  try {
-    const s = localStorage.getItem('hz_auth')
-    return s ? JSON.parse(s).name : 'System'
-  } catch { return 'System' }
-}
-
-function load<T>(key: string, fallback: T): T {
-  try {
-    const v = localStorage.getItem(key)
-    return v ? (JSON.parse(v) as T) : fallback
-  } catch { return fallback }
-}
-
-function uid(prefix: string) {
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
-}
-
-function nowKigali() {
-  return new Intl.DateTimeFormat('sv-SE', {
-    timeZone: 'Africa/Kigali',
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit',
-  }).format(new Date()).replace('T', ' ')
-}
-
-// ── context type ─────────────────────────────────────────────────────────────
 interface AppCtx {
-  transactions: Transaction[]
+  loading: boolean
+  error: string | null
   routes: Route[]
   buses: Bus[]
   captains: Captain[]
-  terminals: Terminal[]
   auditLogs: AuditEntry[]
+  refresh: () => Promise<void>
 
-  addTransaction: (tx: Omit<Transaction, 'id'>) => void
+  addRoute: (r: Omit<Route, 'id' | 'busesAssigned'>) => Promise<void>
+  updateRoute: (id: string, r: Omit<Route, 'id' | 'busesAssigned'>) => Promise<void>
+  deleteRoute: (id: string) => Promise<void>
 
-  addRoute: (r: Omit<Route, 'id'>) => void
-  updateRoute: (id: string, r: Omit<Route, 'id'>) => void
-  deleteRoute: (id: string) => void
+  addBus: (b: Omit<Bus, 'id'>) => Promise<void>
+  updateBus: (id: string, b: Omit<Bus, 'id'>) => Promise<void>
+  deleteBus: (id: string) => Promise<void>
 
-  addBus: (b: Omit<Bus, 'id'>) => void
-  updateBus: (id: string, b: Omit<Bus, 'id'>) => void
-  deleteBus: (id: string) => void
-
-  addCaptain: (c: Omit<Captain, 'id'>) => void
-  updateCaptain: (id: string, c: Omit<Captain, 'id'>) => void
-  deleteCaptain: (id: string) => void
-
-  addTerminal: (t: Omit<Terminal, 'id'>) => void
-  updateTerminal: (id: string, t: Omit<Terminal, 'id'>) => void
-  deleteTerminal: (id: string) => void
+  addCaptain: (c: Omit<Captain, 'id' | 'busAssigned'>) => Promise<void>
+  updateCaptain: (id: string, c: Omit<Captain, 'id' | 'busAssigned'>) => Promise<void>
+  deleteCaptain: (id: string) => Promise<void>
 }
 
 const Ctx = createContext<AppCtx>(null!)
 export const useApp = () => useContext(Ctx)
 
-// ── provider ─────────────────────────────────────────────────────────────────
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [transactions, setTx]       = useState<Transaction[]>(() => load('hz_tx',        defaultTx))
-  const [routes,       setRoutes]   = useState<Route[]>      (() => load('hz_routes',    defaultRoutes))
-  const [buses,        setBuses]    = useState<Bus[]>        (() => load('hz_buses',     defaultBuses))
-  const [captains,     setCaptains] = useState<Captain[]>    (() => load('hz_captains',  defaultCaptains))
-  const [terminals,    setTerminals]= useState<Terminal[]>   (() => load('hz_terminals', defaultTerminals))
-  const [auditLogs,    setLogs]     = useState<AuditEntry[]> (() => load('hz_logs',      defaultLogs))
+  const { user } = useAuth()
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [routes, setRoutes] = useState<Route[]>([])
+  const [buses, setBuses] = useState<Bus[]>([])
+  const [captains, setCaptains] = useState<Captain[]>([])
+  const [auditLogs, setLogs] = useState<AuditEntry[]>([])
 
-  useEffect(() => { localStorage.setItem('hz_tx',        JSON.stringify(transactions)) }, [transactions])
-  useEffect(() => { localStorage.setItem('hz_routes',    JSON.stringify(routes))       }, [routes])
-  useEffect(() => { localStorage.setItem('hz_buses',     JSON.stringify(buses))        }, [buses])
-  useEffect(() => { localStorage.setItem('hz_captains',  JSON.stringify(captains))     }, [captains])
-  useEffect(() => { localStorage.setItem('hz_terminals', JSON.stringify(terminals))    }, [terminals])
-  useEffect(() => { localStorage.setItem('hz_logs',      JSON.stringify(auditLogs))    }, [auditLogs])
+  const refresh = useCallback(async () => {
+    if (!user) return
+    setLoading(true)
+    setError(null)
+    try {
+      const fetches: Promise<unknown>[] = [
+        api.getRoutes(),
+        api.getBuses(),
+        api.getCaptains(),
+      ]
+      if (user.role === 'admin') {
+        fetches.push(api.getAuditLogs())
+      }
 
-  function log(action: AuditEntry['action'], module: AuditEntry['module'], detail: string) {
-    const entry: AuditEntry = { id: uid('A'), timestamp: nowKigali(), user: currentUserName(), action, module, detail }
-    setLogs(prev => [entry, ...prev])
-  }
+      const results = await Promise.all(fetches)
+      setRoutes(results[0] as Route[])
+      setBuses(results[1] as Bus[])
+      setCaptains(results[2] as Captain[])
+      if (user.role === 'admin') {
+        setLogs(results[3] as AuditEntry[])
+      } else {
+        setLogs([])
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load data.')
+    } finally {
+      setLoading(false)
+    }
+  }, [user])
 
-  // ── transactions ──
-  const addTransaction = (tx: Omit<Transaction, 'id'>) => {
-    const item: Transaction = { ...tx, id: uid('TXN') }
-    setTx(prev => [item, ...prev])
-    log('Created', 'Payment', `Urugendo: ${tx.from} → ${tx.to} · ${tx.passengers} abagenzi · RWF ${tx.amount.toLocaleString()}`)
-  }
+  useEffect(() => {
+    if (user) refresh()
+    else {
+      setRoutes([]); setBuses([]); setCaptains([])
+      setLogs([])
+      setLoading(false)
+    }
+  }, [user, refresh])
 
-  // ── routes ──
-  const addRoute = (r: Omit<Route, 'id'>) => {
-    setRoutes(prev => [...prev, { ...r, id: uid('R') }])
-    log('Created', 'Route', `Inzira ${r.number} — ${r.from} → ${r.to} yongewe`)
+  const addRoute = async (r: Omit<Route, 'id' | 'busesAssigned'>) => {
+    const item = await api.createRoute(r)
+    setRoutes(prev => [...prev, item])
+    const logs = await api.getAuditLogs()
+    setLogs(logs)
   }
-  const updateRoute = (id: string, r: Omit<Route, 'id'>) => {
-    setRoutes(prev => prev.map(x => x.id === id ? { ...r, id } : x))
-    log('Updated', 'Route', `Inzira ${r.number} (${r.from} → ${r.to}) yahinduwe`)
+  const updateRoute = async (id: string, r: Omit<Route, 'id' | 'busesAssigned'>) => {
+    const item = await api.updateRoute(id, r)
+    setRoutes(prev => prev.map(x => x.id === id ? item : x))
+    const logs = await api.getAuditLogs()
+    setLogs(logs)
   }
-  const deleteRoute = (id: string) => {
-    const r = routes.find(x => x.id === id)
+  const deleteRoute = async (id: string) => {
+    await api.deleteRoute(id)
     setRoutes(prev => prev.filter(x => x.id !== id))
-    if (r) log('Deleted', 'Route', `Inzira ${r.number} (${r.from} → ${r.to}) yasibwe`)
+    const logs = await api.getAuditLogs()
+    setLogs(logs)
   }
 
-  // ── buses ──
-  const addBus = (b: Omit<Bus, 'id'>) => {
-    setBuses(prev => [...prev, { ...b, id: uid('B') }])
-    log('Created', 'Bus', `Bisi ${b.regNumber} — ${b.model} yongewe mu nganda`)
+  const addBus = async (b: Omit<Bus, 'id'>) => {
+    const item = await api.createBus(b)
+    setBuses(prev => [...prev, item])
+    const logs = await api.getAuditLogs()
+    setLogs(logs)
   }
-  const updateBus = (id: string, b: Omit<Bus, 'id'>) => {
-    setBuses(prev => prev.map(x => x.id === id ? { ...b, id } : x))
-    log('Updated', 'Bus', `Bisi ${b.regNumber} yahinduwe`)
+  const updateBus = async (id: string, b: Omit<Bus, 'id'>) => {
+    const item = await api.updateBus(id, b)
+    setBuses(prev => prev.map(x => x.id === id ? item : x))
+    const logs = await api.getAuditLogs()
+    setLogs(logs)
   }
-  const deleteBus = (id: string) => {
-    const b = buses.find(x => x.id === id)
+  const deleteBus = async (id: string) => {
+    await api.deleteBus(id)
     setBuses(prev => prev.filter(x => x.id !== id))
-    if (b) log('Deleted', 'Bus', `Bisi ${b.regNumber} yasibwe`)
+    const logs = await api.getAuditLogs()
+    setLogs(logs)
   }
 
-  // ── captains ──
-  const addCaptain = (c: Omit<Captain, 'id'>) => {
-    setCaptains(prev => [...prev, { ...c, id: uid('C') }])
-    log('Created', 'Captain', `Umushoferi ${c.name} yongewe`)
+  const addCaptain = async (c: Omit<Captain, 'id' | 'busAssigned'>) => {
+    const item = await api.createCaptain(c)
+    setCaptains(prev => [...prev, item])
+    const logs = await api.getAuditLogs()
+    setLogs(logs)
   }
-  const updateCaptain = (id: string, c: Omit<Captain, 'id'>) => {
-    setCaptains(prev => prev.map(x => x.id === id ? { ...c, id } : x))
-    log('Updated', 'Captain', `Umushoferi ${c.name} yavuguruwe`)
+  const updateCaptain = async (id: string, c: Omit<Captain, 'id' | 'busAssigned'>) => {
+    const item = await api.updateCaptain(id, c)
+    setCaptains(prev => prev.map(x => x.id === id ? item : x))
+    const logs = await api.getAuditLogs()
+    setLogs(logs)
   }
-  const deleteCaptain = (id: string) => {
-    const c = captains.find(x => x.id === id)
+  const deleteCaptain = async (id: string) => {
+    await api.deleteCaptain(id)
     setCaptains(prev => prev.filter(x => x.id !== id))
-    if (c) log('Deleted', 'Captain', `Umushoferi ${c.name} yasibwe`)
-  }
-
-  // ── terminals ──
-  const addTerminal = (t: Omit<Terminal, 'id'>) => {
-    const next = `HT-${String(terminals.length + 1).padStart(2, '0')}`
-    setTerminals(prev => [...prev, { ...t, id: next }])
-    log('Created', 'Terminal', `Terminal ${t.name} i ${t.location} yongewe`)
-  }
-  const updateTerminal = (id: string, t: Omit<Terminal, 'id'>) => {
-    setTerminals(prev => prev.map(x => x.id === id ? { ...t, id } : x))
-    log('Updated', 'Terminal', `Terminal ${t.name} yahinduwe`)
-  }
-  const deleteTerminal = (id: string) => {
-    const t = terminals.find(x => x.id === id)
-    setTerminals(prev => prev.filter(x => x.id !== id))
-    if (t) log('Deleted', 'Terminal', `Terminal ${t.name} yasibwe`)
+    const logs = await api.getAuditLogs()
+    setLogs(logs)
   }
 
   return (
     <Ctx.Provider value={{
-      transactions, routes, buses, captains, terminals, auditLogs,
-      addTransaction,
+      loading, error, routes, buses, captains, auditLogs, refresh,
       addRoute, updateRoute, deleteRoute,
       addBus, updateBus, deleteBus,
       addCaptain, updateCaptain, deleteCaptain,
-      addTerminal, updateTerminal, deleteTerminal,
     }}>
       {children}
     </Ctx.Provider>

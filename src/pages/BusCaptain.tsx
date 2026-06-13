@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Plus, Pencil, Trash2, Star, UserCheck } from 'lucide-react'
 import { useApp } from '../store/AppContext'
-import { type Captain, type CaptainStatus } from '../data/mockData'
+import { type Captain, type CaptainStatus } from '../types'
 import Badge from '../components/shared/Badge'
 import Modal from '../components/shared/Modal'
 import Avatar from '../components/shared/Avatar'
@@ -15,48 +15,61 @@ const empty: Omit<Captain,'id'> = {
   route:'—', rating:5.0, experience:0, status:'Off Duty', joinDate:'',
 }
 
-const F = ({label,name,form,setForm,type='text'}:{
-  label:string;
-  name:keyof Omit<Captain,'id'>;
-  form:Omit<Captain,'id'>;
-  setForm: React.Dispatch<React.SetStateAction<Omit<Captain,'id'>>>;
-  type?:string
-}) => (
+interface FormFieldProps {
+  label: string
+  name: keyof Omit<Captain, 'id'>
+  type?: string
+  value: any
+  onChange: (name: keyof Omit<Captain, 'id'>, value: any) => void
+  autoFocus?: boolean
+  onKeyDown?: (e: React.KeyboardEvent) => void
+}
+
+const F = ({ label, name, type = 'text', value, onChange, autoFocus, onKeyDown }: FormFieldProps) => (
   <div>
     <label className="block text-xs font-semibold text-gray-600 mb-1">{label}</label>
-    <input type={type} value={String(form[name])}
-      onChange={e => setForm(f => ({...f,[name]: type==='number'?Number(e.target.value):e.target.value}))}
-      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]/30"/>
+    <input
+      type={type}
+      value={String(value)}
+      autoFocus={autoFocus}
+      onKeyDown={onKeyDown}
+      onChange={e => onChange(name, type === 'number' ? Number(e.target.value) : e.target.value)}
+      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]/30"
+    />
   </div>
 )
 
 export default function BusCaptain() {
   const { captains, buses, routes, addCaptain, updateCaptain, deleteCaptain } = useApp()
-  const [modal, setModal] = useState<null|'add'|'edit'|'delete'>(null)
-  const [selected, setSelected] = useState<Captain|null>(null)
-  const [form, setForm] = useState<Omit<Captain,'id'>>(empty)
-  const [view, setView] = useState<'table'|'grid'>('table')
+  const [modal, setModal] = useState<null | 'add' | 'edit' | 'delete'>(null)
+  const [selected, setSelected] = useState<Captain | null>(null)
+  const [form, setForm] = useState<Omit<Captain, 'id'>>(empty)
+  const [view, setView] = useState<'table' | 'grid'>('table')
 
-  const openAdd  = () => { setForm(empty); setModal('add') }
-  const openEdit = (c: Captain) => { setSelected(c); setForm({...c}); setModal('edit') }
-  const openDel  = (c: Captain) => { setSelected(c); setModal('delete') }
+  const openAdd = () => { setForm(empty); setModal('add') }
+  const openEdit = (c: Captain) => { setSelected(c); setForm({ ...c }); setModal('edit') }
+  const openDel = (c: Captain) => { setSelected(c); setModal('delete') }
 
-  const save = () => {
-    if (modal==='add')                addCaptain(form)
-    else if (modal==='edit'&&selected) updateCaptain(selected.id, form)
+  const handleFieldChange = (name: keyof Omit<Captain, 'id'>, value: any) => {
+    setForm(f => ({ ...f, [name]: value }))
+  }
+
+  const save = async () => {
+    if (modal === 'add') await addCaptain(form)
+    else if (modal === 'edit' && selected) await updateCaptain(selected.id, form)
     setModal(null)
   }
 
-  const avg = captains.length ? (captains.reduce((s,c)=>s+c.rating,0)/captains.length).toFixed(1) : '—'
+  const avg = captains.length ? (captains.reduce((s, c) => s + c.rating, 0) / captains.length).toFixed(1) : '—'
 
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         {[
           { label:'Abashoferi Bose',  value: captains.length },
-          { label:'Abari mu Kazi',    value: captains.filter(c=>c.status==='On Duty').length },
-          { label:'Abari mu Kiruhuko', value: captains.filter(c=>c.status==='On Leave').length },
-          { label:'Inota ry’Akazi',    value: `${avg} ★` },
+          { label:'Bakorera',         value: captains.filter(c=>c.status==='On Duty').length },
+          { label:'Mu Kiruhuko',      value: captains.filter(c=>c.status==='On Leave').length },
+          { label:'Note Nyuma',       value: `${avg} ★` },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-2xl p-4 shadow-sm">
             <p className="text-xs text-gray-500 font-medium">{s.label}</p>
@@ -67,7 +80,7 @@ export default function BusCaptain() {
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2"><UserCheck size={16}/> Urutonde rw’Abashoferi</h3>
+          <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2"><UserCheck size={16}/> Abashoferi — Captains</h3>
           <div className="flex gap-3 items-center">
             <div className="flex border border-gray-200 rounded-xl overflow-hidden text-xs font-semibold">
               <button onClick={() => setView('table')} className={`px-3 py-1.5 ${view==='table'?'bg-[#0A2558] text-white':'text-gray-500 hover:bg-gray-50'}`}>Imbonerahamwe</button>
@@ -84,7 +97,7 @@ export default function BusCaptain() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50">
-                  {['Amazina','Telefone','Uruhushya','Irangira','Bisi','Inzira','Inota','Uburambe','Imiterere','Ibikorwa'].map(h => (
+                  {['Umushoferi','Telefone','Uruhushya','Irangira','Bisi','Inzira','Note','Ubuhamya','Imiterere','Ibikorwa'].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -113,7 +126,7 @@ export default function BusCaptain() {
                       </span>
                     </td>
                     <td className="px-4 py-3.5 text-gray-600">{c.experience} yrs</td>
-                    <td className="px-4 py-3.5"><Badge label={c.status === 'On Duty' ? 'Ari mu kazi' : c.status === 'On Leave' ? 'Mu kiruhuko' : 'Ntabwo ari mu kazi'} variant={statusVariant[c.status]}/></td>
+                    <td className="px-4 py-3.5"><Badge label={c.status} variant={statusVariant[c.status]}/></td>
                     <td className="px-4 py-3.5">
                       <div className="flex gap-2">
                         <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500"><Pencil size={14}/></button>
@@ -123,7 +136,7 @@ export default function BusCaptain() {
                   </tr>
                 ))}
                 {captains.length===0 && (
-                  <tr><td colSpan={10} className="px-5 py-12 text-center text-gray-400">Nta mushoferi wanditswe. Ongeraho umwe.</td></tr>
+                  <tr><td colSpan={10} className="px-5 py-12 text-center text-gray-400">Nta mushoferi. Ongeraho umwe.</td></tr>
                 )}
               </tbody>
             </table>
@@ -140,7 +153,7 @@ export default function BusCaptain() {
                       <div className="text-xs text-gray-500">{c.experience} yrs · {c.license.slice(0,10)}</div>
                     </div>
                   </div>
-                  <Badge label={c.status === 'On Duty' ? 'Ari mu kazi' : c.status === 'On Leave' ? 'Mu kiruhuko' : 'Ntabwo ari mu kazi'} variant={statusVariant[c.status]}/>
+                  <Badge label={c.status} variant={statusVariant[c.status]}/>
                 </div>
                 <div className="space-y-1.5 text-xs text-gray-600">
                   <div className="flex justify-between"><span className="text-gray-400">Telefone</span>{c.phone}</div>
@@ -148,7 +161,7 @@ export default function BusCaptain() {
                   <div className="flex justify-between items-center"><span className="text-gray-400">Inzira</span>
                     {c.route!=='—'?<span className="bg-[#0A2558] text-white text-[10px] font-bold px-2 py-0.5 rounded">{c.route}</span>:'—'}
                   </div>
-                  <div className="flex justify-between items-center"><span className="text-gray-400">Inota</span>
+                  <div className="flex justify-between items-center"><span className="text-gray-400">Note</span>
                     <span className="flex items-center gap-1 text-amber-500 font-semibold"><Star size={11} fill="currentColor"/>{c.rating}</span>
                   </div>
                 </div>
@@ -159,24 +172,24 @@ export default function BusCaptain() {
               </div>
             ))}
             {captains.length===0 && (
-              <div className="col-span-3 py-12 text-center text-gray-400">Nta mushoferi wanditswe. Ongeraho umwe.</div>
+              <div className="col-span-3 py-12 text-center text-gray-400">Nta mushoferi. Ongeraho umwe.</div>
             )}
           </div>
         )}
       </div>
 
       {(modal==='add'||modal==='edit') && (
-        <Modal title={modal==='add'?'Ongeraho Umushoferi Mwiza':`Hindura — ${selected?.name}`}
+        <Modal title={modal==='add'?'Ongeraho Umushoferi':`Hindura — ${selected?.name}`}
           onClose={() => setModal(null)}
           footer={<>
             <button onClick={() => setModal(null)} className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Reka</button>
             <button onClick={save} className="px-4 py-2 rounded-xl bg-[#0A2558] text-white text-sm font-semibold hover:bg-[#0d2d6b]">Bika</button>
           </>}>
           <div className="grid grid-cols-2 gap-4">
-            <F label="Amazina Yuzuye" name="name" form={form} setForm={setForm}/>
-            <F label="Telefone (+250 7…)" name="phone" form={form} setForm={setForm}/>
-            <F label="Nomero y’Uruhushya" name="license" form={form} setForm={setForm}/>
-            <F label="Irangira ry’Uruhushya" name="licenseExpiry" type="date" form={form} setForm={setForm}/>
+            <F label="Amazina Yuzuye" name="name" value={form.name} onChange={handleFieldChange} autoFocus onKeyDown={e => { if(e.key==='Enter' && form.name) save() }}/>
+            <F label="Telefone (+250 7…)" name="phone" value={form.phone} onChange={handleFieldChange}/>
+            <F label="Nomero y'Uruhushya" name="license" value={form.license} onChange={handleFieldChange}/>
+            <F label="Irangira ry'Uruhushya" name="licenseExpiry" type="date" value={form.licenseExpiry} onChange={handleFieldChange}/>
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1">Bisi Yagenewe</label>
               <select value={form.busAssigned} onChange={e => setForm(f => ({...f,busAssigned:e.target.value}))}
@@ -193,16 +206,14 @@ export default function BusCaptain() {
                 {routes.filter(r=>r.status==='Active').map(r => <option key={r.id} value={r.number}>{r.number} — {r.from} → {r.to}</option>)}
               </select>
             </div>
-            <F label="Uburambe mu Kazi (Imyaka)" name="experience" type="number" form={form} setForm={setForm}/>
-            <F label="Inota ry’Umushoferi (1–5)" name="rating" type="number" form={form} setForm={setForm}/>
-            <F label="Italiki yatangiriyeho" name="joinDate" type="date" form={form} setForm={setForm}/>
+            <F label="Imyaka y'Ubuhamya" name="experience" type="number" value={form.experience} onChange={handleFieldChange}/>
+            <F label="Note (1–5)" name="rating" type="number" value={form.rating} onChange={handleFieldChange}/>
+            <F label="Italiki y'Kwitabira" name="joinDate" type="date" value={form.joinDate} onChange={handleFieldChange}/>
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1">Imiterere</label>
               <select value={form.status} onChange={e => setForm(f => ({...f,status:e.target.value as CaptainStatus}))}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]/30">
-                <option value="On Duty">Ari mu kazi</option>
-                <option value="Off Duty">Ntabwo ari mu kazi</option>
-                <option value="On Leave">Mu kiruhuko</option>
+                <option>On Duty</option><option>Off Duty</option><option>On Leave</option>
               </select>
             </div>
           </div>
@@ -213,9 +224,9 @@ export default function BusCaptain() {
         <Modal title="Siba Umushoferi" onClose={() => setModal(null)}
           footer={<>
             <button onClick={() => setModal(null)} className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Reka</button>
-            <button onClick={() => { deleteCaptain(selected.id); setModal(null) }} className="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700">Emeza isiba</button>
+            <button onClick={async () => { await deleteCaptain(selected!.id); setModal(null) }} className="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700">Siba</button>
           </>}>
-          <p className="text-sm text-gray-600">Urashaka gusiba umushoferi <strong>{selected.name}</strong> mu buryo budasubirwaho?</p>
+          <p className="text-sm text-gray-600">Urashaka gusiba umushoferi <strong>{selected.name}</strong>?</p>
         </Modal>
       )}
     </div>

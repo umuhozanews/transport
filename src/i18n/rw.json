@@ -1,0 +1,52 @@
+{
+  "common": {
+    "dashboard": "Dashboard",
+    "payments": "Imyishyurire",
+    "reports": "Raporo",
+    "audit_log": "Ibyakozwe",
+    "setup": "Igenamiterere",
+    "route_map": "Ikarita y'ingendo",
+    "payment_terminal": "Imashini zishyura",
+    "bus_profile": "Imyirondoro y'imodoka",
+    "bus_captain": "Abashoferi",
+    "logout": "Gusohoka",
+    "admin": "Admin",
+    "agent": "Agenti",
+    "captain": "Shoferi",
+    "kigali": "Kigali",
+    "eat": "EAT",
+    "cancel": "Kureka",
+    "confirm": "Kwemeza"
+  },
+  "login": {
+    "title": "Kwinjira",
+    "subtitle": "Andika imyirondoro yawe kugira ngo winjire",
+    "email": "Imeyili",
+    "password": "Ijambo ry'ibanga",
+    "sign_in": "Injira",
+    "error": "Habayemo ikibazo kitasobanutse.",
+    "demo_accounts": "Kontu z'igerageza — kanda hano wuzuze",
+    "system_title": "Sisitemu yo Gucunga Ingendo",
+    "system_desc": "Kurikirana imodoka, abashoferi, ingendo n'amafaranga yinjira — byose hamwe, mu gihe nyacyo.",
+    "buses_in_op": "Imodoka 9 ziri mu muhanda",
+    "active_routes_rw": "Inzira 7 zikora mu Rwanda",
+    "payments_types": "Kwishura: MTN MoMo, Airtel, Cash",
+    "realtime_reports": "Raporo z'ako kanya buri munsi"
+  },
+  "dashboard": {
+    "today_insights": "Amakuru y'uyu munsi",
+    "active_routes": "Inzira zikora",
+    "bus_running": "Imodoka ziri mu muhanda",
+    "active_captains": "Abashoferi bari mu kazi",
+    "total_routes": "Inzira zose {{count}}",
+    "total_bus": "Imodoka zose {{count}}",
+    "total_captains": "Abashoferi bose {{count}}"
+  },
+  "auth": {
+    "access_denied": "Ntaburenganzira",
+    "no_permission": "Ntaburenganzira ufite bwo kureba aya makuru.",
+    "confirm_logout": "Kwemeza Gusohoka",
+    "logout_question": "Ese urashaka gusohoka koko, {{name}}?",
+    "logout_note": "Ibi birandikwa mu gitabo cy'ibyakozwe."
+  }
+}

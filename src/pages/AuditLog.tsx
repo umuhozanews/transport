@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Search } from 'lucide-react'
 import { useApp } from '../store/AppContext'
-import { type AuditAction, type AuditModule } from '../data/mockData'
+import { type AuditAction, type AuditModule } from '../types'
 import Badge from '../components/shared/Badge'
 
 const actionVariant: Record<AuditAction,'success'|'info'|'danger'|'neutral'|'warning'|'navy'> = {

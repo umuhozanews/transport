@@ -5,13 +5,20 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:server": "npm run dev --prefix server",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "build:server": "npm run build --prefix server",
+    "preview": "vite preview",
+    "db:up": "docker compose up -d",
+    "db:setup": "npm run db:setup --prefix server"
   },
   "dependencies": {
+    "i18next": "^26.3.1",
+    "i18next-browser-languagedetector": "^8.2.1",
     "lucide-react": "^0.400.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-i18next": "^17.0.8",
     "recharts": "^2.12.7"
   },
   "devDependencies": {

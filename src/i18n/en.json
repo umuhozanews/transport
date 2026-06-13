@@ -1,0 +1,52 @@
+{
+  "common": {
+    "dashboard": "Dashboard",
+    "payments": "Payment Transactions",
+    "reports": "Reports",
+    "audit_log": "Audit Log",
+    "setup": "Setup",
+    "route_map": "Route Map",
+    "payment_terminal": "Payment Terminal",
+    "bus_profile": "Bus Profile",
+    "bus_captain": "Bus Captain",
+    "logout": "Logout",
+    "admin": "Admin",
+    "agent": "Agent",
+    "captain": "Captain",
+    "kigali": "Kigali",
+    "eat": "EAT",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+  "login": {
+    "title": "Sign In",
+    "subtitle": "Enter your credentials to access the system",
+    "email": "Email Address",
+    "password": "Password",
+    "sign_in": "Sign In",
+    "error": "Unknown error.",
+    "demo_accounts": "Demo Accounts — click to fill",
+    "system_title": "Bus Management System",
+    "system_desc": "Track buses, drivers, routes, and revenue — all in one place, in real time.",
+    "buses_in_op": "9 buses in operation",
+    "active_routes_rw": "7 active routes across Rwanda",
+    "payments_types": "Payments: MTN MoMo, Airtel, Cash",
+    "realtime_reports": "Real-time daily reports"
+  },
+  "dashboard": {
+    "today_insights": "Today Insights",
+    "active_routes": "Active Routes",
+    "bus_running": "Bus Running",
+    "active_captains": "Active Captains",
+    "total_routes": "Total Routes {{count}}",
+    "total_bus": "Total Bus {{count}}",
+    "total_captains": "Total Captains {{count}}"
+  },
+  "auth": {
+    "access_denied": "Access Denied",
+    "no_permission": "You do not have permission to view this page.",
+    "confirm_logout": "Confirm Logout",
+    "logout_question": "Are you sure you want to log out, {{name}}?",
+    "logout_note": "This action will be recorded in the audit log."
+  }
+}

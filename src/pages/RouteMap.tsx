@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Plus, Pencil, Trash2, MapPin } from 'lucide-react'
 import { useApp } from '../store/AppContext'
-import { type Route, type RouteStatus } from '../data/mockData'
+import { type Route, type RouteStatus } from '../types'
 import Badge from '../components/shared/Badge'
 import Modal from '../components/shared/Modal'
 
@@ -9,17 +9,21 @@ const empty: Omit<Route, 'id'> = {
   number: '', from: '', to: '', distance: 0, fare: 0, stops: 0, busesAssigned: 0, status: 'Active',
 }
 
-const F = ({ label, name, form, setForm, type = 'text' }: {
-  label: string;
-  name: keyof Omit<Route,'id'>;
-  form: Omit<Route,'id'>;
-  setForm: React.Dispatch<React.SetStateAction<Omit<Route,'id'>>>;
+interface FormFieldProps {
+  label: string
+  name: keyof Omit<Route, 'id'>
   type?: string
-}) => (
+  value: any
+  onChange: (name: keyof Omit<Route, 'id'>, value: any) => void
+}
+
+const F = ({ label, name, type = 'text', value, onChange }: FormFieldProps) => (
   <div>
     <label className="block text-xs font-semibold text-gray-600 mb-1">{label}</label>
-    <input type={type} value={String(form[name])}
-      onChange={e => setForm(f => ({ ...f, [name]: type === 'number' ? Number(e.target.value) : e.target.value }))}
+    <input
+      type={type}
+      value={String(value)}
+      onChange={e => onChange(name, type === 'number' ? Number(e.target.value) : e.target.value)}
       className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]/30"
     />
   </div>
@@ -31,23 +35,28 @@ export default function RouteMap() {
   const [selected, setSelected] = useState<Route | null>(null)
   const [form, setForm] = useState<Omit<Route, 'id'>>(empty)
 
-  const openAdd   = () => { setForm(empty); setModal('add') }
-  const openEdit  = (r: Route) => { setSelected(r); setForm({ ...r }); setModal('edit') }
-  const openDel   = (r: Route) => { setSelected(r); setModal('delete') }
+  const openAdd = () => { setForm(empty); setModal('add') }
+  const openEdit = (r: Route) => { setSelected(r); setForm({ ...r }); setModal('edit') }
+  const openDel = (r: Route) => { setSelected(r); setModal('delete') }
 
-  const save = () => {
-    if (modal === 'add')              addRoute(form)
-    else if (modal === 'edit' && selected) updateRoute(selected.id, form)
+  const handleFieldChange = (name: keyof Omit<Route, 'id'>, value: any) => {
+    setForm(f => ({ ...f, [name]: value }))
+  }
+
+  const save = async () => {
+    const { busesAssigned: _, ...payload } = form
+    if (modal === 'add') await addRoute(payload)
+    else if (modal === 'edit' && selected) await updateRoute(selected.id, payload)
     setModal(null)
   }
 
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         {[
-          { label: 'Inzira zose',  value: routes.length,                                    color: 'text-[#4a6cf7]' },
-          { label: 'Zikoreshwa',   value: routes.filter(r => r.status === 'Active').length,  color: 'text-emerald-600' },
-          { label: 'Izidahari',    value: routes.filter(r => r.status === 'Inactive').length,color: 'text-gray-500' },
+          { label: 'Total Routes',  value: routes.length,                                    color: 'text-[#4a6cf7]' },
+          { label: 'Active',        value: routes.filter(r => r.status === 'Active').length,  color: 'text-emerald-600' },
+          { label: 'Inactive',      value: routes.filter(r => r.status === 'Inactive').length,color: 'text-gray-500' },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-2xl p-4 shadow-sm">
             <p className="text-xs text-gray-500 font-medium">{s.label}</p>
@@ -58,16 +67,16 @@ export default function RouteMap() {
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2"><MapPin size={16}/> Inzira z’ingendo zose</h3>
+          <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2"><MapPin size={16}/> Inzira zose — Route Directory</h3>
           <button onClick={openAdd} className="flex items-center gap-2 bg-[#0A2558] text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-[#0d2d6b] transition-colors">
-            <Plus size={15}/> Ongeraho Inzira nshya
+            <Plus size={15}/> Ongeraho Inzira
           </button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50">
-                {['Inomero','Aho ava n’aho ajya','Intera','Igiciro (RWF)','Aho ahagarara','Amabisi','Imiterere','Ibikorwa'].map(h => (
+                {['Route No.','From → To','Distance','Fare (RWF)','Stops','Buses','Status','Actions'].map(h => (
                   <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -81,7 +90,7 @@ export default function RouteMap() {
                   <td className="px-5 py-3.5 font-semibold text-gray-800">{r.fare.toLocaleString()}</td>
                   <td className="px-5 py-3.5 text-gray-600">{r.stops}</td>
                   <td className="px-5 py-3.5 text-gray-600">{r.busesAssigned}</td>
-                  <td className="px-5 py-3.5"><Badge label={r.status === 'Active' ? 'Irakora' : 'Ntabwo ikora'} variant={r.status === 'Active' ? 'success' : 'neutral'}/></td>
+                  <td className="px-5 py-3.5"><Badge label={r.status} variant={r.status === 'Active' ? 'success' : 'neutral'}/></td>
                   <td className="px-5 py-3.5">
                     <div className="flex gap-2">
                       <button onClick={() => openEdit(r)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500 transition-colors"><Pencil size={14}/></button>
@@ -91,7 +100,7 @@ export default function RouteMap() {
                 </tr>
               ))}
               {routes.length === 0 && (
-                <tr><td colSpan={8} className="px-5 py-12 text-center text-gray-400">Nta nzira zihari kuri ubu. Ongeraho imwe nshya.</td></tr>
+                <tr><td colSpan={8} className="px-5 py-12 text-center text-gray-400">Nta nzira. Ongeraho inzira nshya.</td></tr>
               )}
             </tbody>
           </table>
@@ -99,28 +108,27 @@ export default function RouteMap() {
       </div>
 
       {(modal === 'add' || modal === 'edit') && (
-        <Modal title={modal === 'add' ? 'Ongeraho Inzira nshya' : `Hindura amakuru ya — ${selected?.number}`}
+        <Modal title={modal === 'add' ? 'Ongeraho Inzira Nshya' : `Hindura — ${selected?.number}`}
           onClose={() => setModal(null)}
           footer={<>
             <button onClick={() => setModal(null)} className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Reka</button>
-            <button onClick={save} className="px-4 py-2 rounded-xl bg-[#0A2558] text-white text-sm font-semibold hover:bg-[#0d2d6b]">Bika amakuru</button>
+            <button onClick={save} className="px-4 py-2 rounded-xl bg-[#0A2558] text-white text-sm font-semibold hover:bg-[#0d2d6b]">Bika</button>
           </>}>
           <div className="grid grid-cols-2 gap-4">
-            <F label="Inomero y’inzira (urugero: KL1)" name="number" form={form} setForm={setForm}/>
+            <F label="Nomero y'Inzira (e.g. KL1)" name="number" value={form.number} onChange={handleFieldChange}/>
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1">Imiterere</label>
               <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value as RouteStatus }))}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a6cf7]/30">
-                <option value="Active">Irakora</option>
-                <option value="Inactive">Ntabwo ikora</option>
+                <option>Active</option><option>Inactive</option>
               </select>
             </div>
-            <F label="Aho ava (Avuye)" name="from" form={form} setForm={setForm}/>
-            <F label="Aho ajya" name="to" form={form} setForm={setForm}/>
-            <F label="Intera y’urugendo (km)" name="distance" type="number" form={form} setForm={setForm}/>
-            <F label="Igiciro cy’urugendo (RWF)" name="fare" type="number" form={form} setForm={setForm}/>
-            <F label="Umubare w’aho ahagarara" name="stops" type="number" form={form} setForm={setForm}/>
-            <F label="Amabisi ayigenewe" name="busesAssigned" type="number" form={form} setForm={setForm}/>
+            <F label="Avuye — From" name="from" value={form.from} onChange={handleFieldChange}/>
+            <F label="Ajya — To" name="to" value={form.to} onChange={handleFieldChange}/>
+            <F label="Intera (km)" name="distance" type="number" value={form.distance} onChange={handleFieldChange}/>
+            <F label="Igiciro (RWF)" name="fare" type="number" value={form.fare} onChange={handleFieldChange}/>
+            <F label="Ingaruka zo guhagarara" name="stops" type="number" value={form.stops} onChange={handleFieldChange}/>
+            <F label="Imodoka zigenewe" name="busesAssigned" type="number" value={form.busesAssigned} onChange={handleFieldChange}/>
           </div>
         </Modal>
       )}
@@ -129,9 +137,9 @@ export default function RouteMap() {
         <Modal title="Siba Inzira" onClose={() => setModal(null)}
           footer={<>
             <button onClick={() => setModal(null)} className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Reka</button>
-            <button onClick={() => { deleteRoute(selected.id); setModal(null) }} className="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700">Emeza isiba</button>
+            <button onClick={async () => { await deleteRoute(selected!.id); setModal(null) }} className="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700">Siba</button>
           </>}>
-          <p className="text-sm text-gray-600">Urashaka gusiba inzira <strong>{selected.number} ({selected.from} → {selected.to})</strong> mu buryo budasubirwaho?</p>
+          <p className="text-sm text-gray-600">Urashaka gusiba inzira <strong>{selected.number} ({selected.from} → {selected.to})</strong>? Ibi ntibishobora gusubizwa inyuma.</p>
         </Modal>
       )}
     </div>

@@ -1,19 +1,32 @@
 import { useState, useEffect } from 'react'
 import { useAuth, can } from './store/AuthContext'
-import { useLanguage } from './store/LanguageContext'
+import { useApp } from './store/AppContext'
 import LoginPage from './pages/LoginPage'
 import Sidebar from './components/Sidebar'
 import Dashboard from './components/Dashboard'
-import PaymentTransactions from './pages/PaymentTransactions'
 import Reports from './pages/Reports'
 import AuditLog from './pages/AuditLog'
 import RouteMap from './pages/RouteMap'
-import PaymentTerminal from './pages/PaymentTerminal'
 import BusProfile from './pages/BusProfile'
 import BusCaptain from './pages/BusCaptain'
+import LiveTracking from './pages/LiveTracking'
 import Modal from './components/shared/Modal'
 import Avatar from './components/shared/Avatar'
+import { ROLE_LABEL, ROLE_BADGE_CLASS } from './lib/roles'
 import { Menu, ShieldAlert } from 'lucide-react'
+
+const PAGE_TITLE: Record<string, string> = {
+  dashboard:          'Operations Dashboard',
+  'live-tracking':    'Live Bus Tracking',
+  reports:            'Reports',
+  audit:              'Audit Log',
+  'route-map':        'Route Map',
+  'bus-profile':      'Bus Profile',
+  'bus-captain':      'Bus Captain',
+}
+
+const ROLE_BADGE = ROLE_BADGE_CLASS
+const ROLE_LABEL_MAP = ROLE_LABEL
 
 function KigaliClock() {
   const [now, setNow] = useState(new Date())
@@ -45,11 +58,10 @@ function PageContent({ active }: { active: string }) {
 
   switch (active) {
     case 'dashboard':         return <Dashboard />
-    case 'payments':          return <PaymentTransactions />
+    case 'live-tracking':     return <LiveTracking />
     case 'reports':           return can.seeReports(role)   ? <Reports />        : <AccessDenied />
     case 'audit':             return can.seeAuditLog(role)  ? <AuditLog />       : <AccessDenied />
     case 'route-map':         return can.seeSetup(role)     ? <RouteMap />       : <AccessDenied />
-    case 'payment-terminal':  return can.seeSetup(role)     ? <PaymentTerminal /> : <AccessDenied />
     case 'bus-profile':       return can.seeSetup(role)     ? <BusProfile />     : <AccessDenied />
     case 'bus-captain':       return can.seeSetup(role)     ? <BusCaptain />     : <AccessDenied />
     default:                  return <Dashboard />
@@ -58,35 +70,20 @@ function PageContent({ active }: { active: string }) {
 
 export default function App() {
   const { user, logout } = useAuth()
-  const { t } = useLanguage()
+  const { loading, error } = useApp()
   const [active, setActive]           = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [logoutModal, setLogoutModal] = useState(false)
 
   if (!user) return <LoginPage />
 
-  const PAGE_TITLE: Record<string, string> = {
-    dashboard:          t('nav.dashboard'),
-    payments:           t('nav.payments'),
-    reports:            t('nav.reports'),
-    audit:              t('nav.audit'),
-    'route-map':        t('nav.routeMap'),
-    'payment-terminal': t('nav.paymentTerminal'),
-    'bus-profile':      t('nav.busProfile'),
-    'bus-captain':      t('nav.busCaptain'),
-  }
-
-  const ROLE_BADGE: Record<string, string> = {
-    admin:   'bg-[#0A2558] text-white',
-    agent:   'bg-emerald-700 text-white',
-    captain: 'bg-amber-600 text-white',
-  }
-  const ROLE_LABEL: Record<string, string> = { admin: 'Admin', agent: 'Agent', captain: 'Captain' }
-
   return (
-    <div className="min-h-screen bg-[#f0f2f7] flex overflow-hidden">
-      {/* Sidebar - fixed on mobile, sticky on desktop */}
-      <div className={`fixed lg:sticky top-0 h-screen z-50 transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0 shadow-xl lg:shadow-none'}`}>
+    <div className="min-h-screen bg-[#f0f2f7] flex">
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/40 z-30 lg:hidden" onClick={() => setSidebarOpen(false)}/>
+      )}
+
+      <div className={`fixed lg:static inset-y-0 left-0 z-40 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <Sidebar
           active={active}
           onNavigate={id => { setActive(id); setSidebarOpen(false) }}
@@ -94,21 +91,15 @@ export default function App() {
         />
       </div>
 
-      {/* Overlay for mobile sidebar */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden" onClick={() => setSidebarOpen(false)}/>
-      )}
-
-      <div className="flex-1 flex flex-col min-h-screen min-w-0 h-screen">
-        {/* Topbar */}
-        <header className="bg-white border-b border-gray-200 px-4 lg:px-7 py-3 flex items-center justify-between sticky top-0 z-30 shadow-sm flex-shrink-0">
-          <div className="flex items-center gap-2 lg:gap-3">
+      <div className="flex-1 lg:ml-[280px] flex flex-col min-h-screen">
+        <header className="bg-white border-b border-gray-200 px-5 lg:px-7 py-3.5 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+          <div className="flex items-center gap-3">
             <button className="lg:hidden p-1.5 rounded-lg hover:bg-gray-100" onClick={() => setSidebarOpen(true)}>
               <Menu size={20} className="text-gray-600"/>
             </button>
-            <h1 className="text-lg lg:text-xl font-bold text-gray-800 truncate max-w-[150px] sm:max-w-none">{PAGE_TITLE[active] ?? 'Dashboard'}</h1>
+            <h1 className="text-xl font-bold text-gray-800">{PAGE_TITLE[active] ?? 'Dashboard'}</h1>
           </div>
-          <div className="flex items-center gap-2 lg:gap-3">
+          <div className="flex items-center gap-3">
             <KigaliClock />
             <div className="h-8 w-px bg-gray-200 hidden md:block"/>
             <div className="flex items-center gap-2.5">
@@ -117,7 +108,7 @@ export default function App() {
                 <div className="flex items-center gap-2 justify-end">
                   <span className="text-sm font-bold text-gray-800 leading-tight">{user.name}</span>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${ROLE_BADGE[user.role]}`}>
-                    {ROLE_LABEL[user.role]}
+                    {ROLE_LABEL_MAP[user.role]}
                   </span>
                 </div>
                 <div className="text-xs text-gray-400 leading-tight truncate max-w-[220px]">{user.title}</div>
@@ -126,25 +117,36 @@ export default function App() {
           </div>
         </header>
 
-        <main className="flex-1 p-4 lg:p-7 overflow-x-hidden">
-          <PageContent active={active}/>
+        <main className="flex-1 p-5 lg:p-7 overflow-y-auto">
+          {loading ? (
+            <div className="flex items-center justify-center h-64 text-gray-400">
+              <div className="w-8 h-8 border-2 border-[#0A2558]/20 border-t-[#0A2558] rounded-full animate-spin"/>
+            </div>
+          ) : error ? (
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-red-700 text-sm">
+              {error}
+            </div>
+          ) : (
+            <PageContent active={active}/>
+          )}
         </main>
 
-        <footer className="text-center text-[10px] sm:text-xs text-gray-400 py-3 px-4 border-t border-gray-200 bg-white">
-          HORIZON Express Ltd · Nyabugogo, Kigali, Rwanda · v1.0.0
+        <footer className="text-center text-xs text-gray-400 py-3 border-t border-gray-200 bg-white">
+          HORIZON Express Ltd · TIN: 102 456 789 · Nyabugogo, Kigali, Rwanda · v1.0.0
         </footer>
       </div>
 
       {logoutModal && (
-        <Modal title={t('nav.logout')} onClose={() => setLogoutModal(false)}
+        <Modal title="Confirm Logout" onClose={() => setLogoutModal(false)}
           footer={<>
-            <button onClick={() => setLogoutModal(false)} className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">{t('common.cancel')}</button>
-            <button onClick={() => { logout(); setLogoutModal(false) }} className="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700">
-              {t('nav.logout')}
+            <button onClick={() => setLogoutModal(false)} className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Cancel</button>
+            <button onClick={async () => { await logout(); setLogoutModal(false) }} className="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700">
+              Logout
             </button>
           </>}>
           <p className="text-sm text-gray-600">
-            {t('nav.logoutConfirm')} <strong>{user.name}</strong>?
+            Are you sure you want to log out, <strong>{user.name}</strong>?
+            <br/><span className="text-gray-400 text-xs">This action will be recorded in the audit log.</span>
           </p>
         </Modal>
       )}

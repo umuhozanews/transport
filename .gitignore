@@ -3,3 +3,10 @@ dist/
 .env
 .env.local
 *.local
+
+# Server
+server/node_modules/
+server/dist/
+server/.env
+server/prisma/*.db
+server/prisma/*.db-journal

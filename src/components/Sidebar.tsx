@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import {
-  LayoutDashboard, CreditCard, BarChart2, ScrollText,
-  Settings, LogOut, ChevronDown, ChevronRight, Languages
+  LayoutDashboard, BarChart2, ScrollText,
+  Settings, LogOut, ChevronDown, ChevronRight, Radio,
 } from 'lucide-react'
 import { useAuth, can } from '../store/AuthContext'
-import { useLanguage } from '../store/LanguageContext'
+import { ROLE_LABEL } from '../lib/roles'
 
 function HorizonLogo() {
   return (
@@ -42,32 +42,29 @@ const ROLE_COLOR: Record<string, string> = {
   agent:   'bg-emerald-500/20 text-emerald-300',
   captain: 'bg-amber-500/20 text-amber-300',
 }
-const ROLE_LABEL: Record<string, string> = { admin: 'Admin', agent: 'Agent', captain: 'Captain' }
 
 export default function Sidebar({ active, onNavigate, onLogout }: SidebarProps) {
   const { user } = useAuth()
-  const { language, setLanguage, t } = useLanguage()
   const [setupOpen, setSetupOpen] = useState(true)
   const role = user?.role ?? 'agent'
 
   const navItems: NavItem[] = [
-    { id: 'dashboard', label: t('nav.dashboard'),    icon: <LayoutDashboard size={19}/> },
-    { id: 'payments',  label: t('nav.payments'),     icon: <CreditCard size={19}/> },
-    ...(can.seeReports(role)  ? [{ id: 'reports', label: t('nav.reports'),   icon: <BarChart2 size={19}/> }] : []),
-    ...(can.seeAuditLog(role) ? [{ id: 'audit',   label: t('nav.audit'),     icon: <ScrollText size={19}/> }] : []),
+    { id: 'dashboard', label: 'Operations',            icon: <LayoutDashboard size={19}/> },
+    { id: 'live-tracking', label: 'Live Tracking',     icon: <Radio size={19}/> },
+    ...(can.seeReports(role)  ? [{ id: 'reports', label: 'Reports',   icon: <BarChart2 size={19}/> }] : []),
+    ...(can.seeAuditLog(role) ? [{ id: 'audit',   label: 'Audit Log', icon: <ScrollText size={19}/> }] : []),
     ...(can.seeSetup(role) ? [{
-      id: 'setup', label: t('nav.setup'), icon: <Settings size={19}/>,
+      id: 'setup', label: 'Setup', icon: <Settings size={19}/>,
       children: [
-        { id: 'route-map',         label: t('nav.routeMap') },
-        { id: 'payment-terminal',  label: t('nav.paymentTerminal') },
-        { id: 'bus-profile',       label: t('nav.busProfile') },
-        { id: 'bus-captain',       label: t('nav.busCaptain') },
+        { id: 'route-map',   label: 'Route Map' },
+        { id: 'bus-profile', label: 'Bus Profile' },
+        { id: 'bus-captain', label: 'Drivers' },
       ],
     }] : []),
   ]
 
   return (
-    <aside className="h-screen w-[280px] bg-[#0A2558] flex flex-col">
+    <aside className="fixed top-0 left-0 h-screen w-[280px] bg-[#0A2558] flex flex-col z-40">
       {/* Logo */}
       <div className="px-6 py-5 border-b border-white/10">
         <div className="flex items-center gap-2.5">
@@ -91,7 +88,7 @@ export default function Sidebar({ active, onNavigate, onLogout }: SidebarProps) 
             <div className="text-[10px] text-blue-300/60 truncate">{user.title}</div>
           </div>
           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${ROLE_COLOR[role]}`}>
-            {ROLE_LABEL[role]}
+            {ROLE_LABEL[role as keyof typeof ROLE_LABEL] ?? role}
           </span>
         </div>
       )}
@@ -141,20 +138,12 @@ export default function Sidebar({ active, onNavigate, onLogout }: SidebarProps) 
         })}
       </nav>
 
-      {/* Language & Logout */}
-      <div className="px-4 pb-6 space-y-1">
-        <button
-          onClick={() => setLanguage(language === 'rw' ? 'en' : 'rw')}
-          className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-blue-200/65 hover:bg-white/10 hover:text-white transition-all duration-150"
-        >
-          <Languages size={19} className="text-blue-300/65"/>
-          {language === 'rw' ? 'English (EN)' : 'Kinyarwanda (RW)'}
-        </button>
-
+      {/* Logout */}
+      <div className="px-4 pb-6">
         <button onClick={onLogout}
           className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-blue-200/65 hover:bg-white/10 hover:text-white transition-all duration-150">
           <LogOut size={19} className="text-blue-300/65"/>
-          {t('nav.logout')}
+          Logout
         </button>
       </div>
     </aside>
