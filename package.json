@@ -7,7 +7,10 @@
     "dev": "vite",
     "dev:server": "npm run dev --prefix server",
     "build": "tsc && vite build",
+    "build:vercel": "npm run build && npm run build:server:vercel && npm run db:prepare:vercel",
     "build:server": "npm run build --prefix server",
+    "build:server:vercel": "cd server && npx prisma generate && npm run build",
+    "db:prepare:vercel": "cd server && npx prisma db push && node --experimental-strip-types prisma/seed.ts",
     "preview": "vite preview",
     "db:up": "docker compose up -d",
     "db:setup": "npm run db:setup --prefix server"
@@ -19,11 +22,13 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-i18next": "^17.0.8",
-    "recharts": "^2.12.7"
+    "recharts": "^2.12.7",
+    "serverless-http": "^3.2.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "@vercel/node": "^5.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.19",
     "playwright": "^1.60.0",
